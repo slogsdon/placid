@@ -25,7 +25,7 @@ defmodule Placid.Mixfile do
       { :poison, "~> 1.1.0" },
       { :earmark, "~> 0.1.10", only: :docs },
       { :ex_doc, "~> 0.6.0", only: :docs },
-      { :excoveralls, github: "parroty/excoveralls" } ]
+      { :excoveralls, "~> 0.3", only: :dev } ]
   end
 
   defp description do

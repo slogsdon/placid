@@ -1,4 +1,6 @@
 # placid
+[![Build Status](https://img.shields.io/travis/slogsdon/placid.svg)](https://travis-ci.org/slogsdon/placid)
+[![Coverage Status](https://img.shields.io/coveralls/slogsdon/placid.svg)](https://coveralls.io/r/slogsdon/placid)
 
 A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with Elixir.
 

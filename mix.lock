@@ -2,7 +2,7 @@
   "cowlib": {:package, "1.0.0"},
   "earmark": {:package, "0.1.10"},
   "ex_doc": {:package, "0.6.0"},
-  "excoveralls": {:git, "git://github.com/parroty/excoveralls.git", "e3eceab0c1c9b62c4288ae7487e87e0f01e8942f", []},
+  "excoveralls": {:package, "0.3.2"},
   "jsex": {:package, "2.0.0"},
   "jsx": {:package, "2.0.4"},
   "linguist": {:package, "0.1.2"},
