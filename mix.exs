@@ -18,7 +18,7 @@ defmodule Placid.Mixfile do
       mod: { Placid, [] } ]
   end
 
-  defp deps(:prod) do
+  defp deps do
     [ { :cowboy, "~> 1.0.0" },
       { :plug, "~> 0.7.0" },
       { :linguist, "~> 0.1.2" },

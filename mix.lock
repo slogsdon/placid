@@ -1,0 +1,11 @@
+%{"cowboy": {:package, "1.0.0"},
+  "cowlib": {:package, "1.0.0"},
+  "earmark": {:package, "0.1.10"},
+  "ex_doc": {:package, "0.6.0"},
+  "excoveralls": {:git, "git://github.com/parroty/excoveralls.git", "e3eceab0c1c9b62c4288ae7487e87e0f01e8942f", []},
+  "jsex": {:package, "2.0.0"},
+  "jsx": {:package, "2.0.4"},
+  "linguist": {:package, "0.1.2"},
+  "plug": {:package, "0.7.0"},
+  "poison": {:package, "1.1.0"},
+  "ranch": {:package, "1.0.0"}}

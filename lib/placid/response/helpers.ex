@@ -115,7 +115,7 @@ defmodule Placid.Response.Helpers do
 
     conn
       |> put_resp_content_type_if_not_sent(opts[:content_type] || "text/html")
-      |> send_resp_if_not_sent(opts[:status], html)
+      |> send_resp_if_not_sent(opts[:status], data)
   end
 
   @doc """
