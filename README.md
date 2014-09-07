@@ -1,9 +1,11 @@
 # placid
 
-A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with Elixir
+A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with Elixir.
 
 ## TODO
 
+- [ ] Compatibility with web frameworks via umbrella projects.
+  - [ ] Would be nice to offer tight integration when available, e.g. `Phoenix.Topic` notifications
 - [ ] Respects HTTP specifications ([7230](http://tools.ietf.org/pdf/rfc7230.pdf), 
   [7231](http://tools.ietf.org/pdf/rfc7231.pdf),
   [7232](http://tools.ietf.org/pdf/rfc7232.pdf), 
