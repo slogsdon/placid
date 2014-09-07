@@ -15,4 +15,4 @@ before_script:
 script:
   - mix test
 after_success:
-  - MIX_ENV=test mix coveralls.travis
+  - mix coveralls.travis
