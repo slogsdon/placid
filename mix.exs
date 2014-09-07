@@ -21,8 +21,10 @@ defmodule Placid.Mixfile do
   defp deps(:prod) do
     [ { :cowboy, "~> 1.0.0" },
       { :plug, "~> 0.7.0" },
-      { :jsex, "~> 2.0.0" },
-      { :ex_doc, github: "elixir-lang/ex_doc" },
+      { :linguist, "~> 0.1.2" },
+      { :poison, "~> 1.1.0" },
+      { :earmark, "~> 0.1.10", only: :docs },
+      { :ex_doc, "~> 0.6.0", only: :docs },
       { :excoveralls, github: "parroty/excoveralls" } ]
   end
 

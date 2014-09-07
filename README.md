@@ -4,6 +4,12 @@ A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with El
 
 ## TODO
 
+- [ ] Respects HTTP specifications ([7230](http://tools.ietf.org/pdf/rfc7230.pdf), 
+  [7231](http://tools.ietf.org/pdf/rfc7231.pdf),
+  [7232](http://tools.ietf.org/pdf/rfc7232.pdf), 
+  [7233](http://tools.ietf.org/pdf/rfc7233.pdf), 
+  [7234](http://tools.ietf.org/pdf/rfc7234.pdf), 
+  [7235](http://tools.ietf.org/pdf/rfc7235.pdf))
 - [ ] [Foundations](https://github.com/interagent/http-api-design#foundations)
   - [ ] [Require TLS](https://github.com/interagent/http-api-design#require-tls)
   - [ ] [Version with Accepts header](https://github.com/interagent/http-api-design#version-with-accepts-header)
