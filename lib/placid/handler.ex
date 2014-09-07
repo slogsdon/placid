@@ -7,6 +7,7 @@ defmodule Placid.Handler do
       import unquote(__MODULE__)
       import unquote(Plug.Conn)
       use unquote(Placid.Response.Helpers)
+      use unquote(Placid.Response.Hooks)
     end
   end
 end

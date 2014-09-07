@@ -5,13 +5,13 @@ defmodule Placid.Router do
 
   Routes are defined with the form:
 
-      method route [guard], handler, action
+      method route [guard], controller, action
 
   `method` is `get`, `post`, `put`, `patch`, `delete`, or `options`,
   each responsible for a single HTTP method. `method` can also be
-  `any`, which will match on all HTTP methods. `handler` is any
+  `any`, which will match on all HTTP methods. `controller` is any
   valid Elixir module name, and `action` is any valid function
-  defined in the `handler` module.
+  defined in the `controller` module.
 
   ## Example
 
@@ -19,6 +19,8 @@ defmodule Placid.Router do
         use Placid.Router, plugs: [
           { Plugs.HotCodeReload, [] }
         ]
+
+        before_filter Filters, :set_headers
 
         # Define your routes here
         get "/", Hello, :index
@@ -38,11 +40,10 @@ defmodule Placid.Router do
       import unquote(__MODULE__)
       import Plug.Conn
       use Plug.Router
+      use Placid.Router.Filters
       @before_compile unquote(__MODULE__)
 
-      plug Plug.Parsers, parsers: [ Placid.Request.Parsers.JSON, 
-                                    :urlencoded, 
-                                    :multipart ]
+      plug Plug.Parsers, parsers: [Placid.Request.Parsers.JSON, :urlencoded, :multipart]
 
       opts = unquote(opts)
       if opts[:plugs] do
@@ -69,17 +70,15 @@ defmodule Placid.Router do
       # when accessing an undefined route
       Plug.Router.match _ do
         conn = var!(conn)
-        Placid.Response.not_found conn
+        Placid.Controller.not_found conn
       end
 
-      defp call_handler_action(%Plug.Conn{ state: :unset } = conn, handler, action, binding) do
+      defp call_controller_action(%Plug.Conn{state: :unset} = conn, controller, action, binding) do
         conn = call_before_filters(unquote(filters), action, conn)
-        conn = apply handler, :call_action, [ action, 
-                                              conn, 
-                                              Keyword.delete(binding, :conn) ]
+        conn = apply controller, :call_action, [action, conn, Keyword.delete(binding, :conn)]
         call_after_filters(unquote(filters), action, conn)
       end
-      defp call_handler_action(conn, _, _, _) do
+      defp call_controller_action(conn, _, _, _) do
         conn
       end
     end
@@ -91,13 +90,13 @@ defmodule Placid.Router do
   ## Arguments
 
   * `route` - `String|List`
-  * `handler` - `Atom`
+  * `controller` - `Atom`
   * `action` - `Atom`
   """
-  defmacro get(route, handler, action) do
+  defmacro get(route, controller, action) do
     quote do
       get unquote(route), do: unquote(
-        build_match handler, action
+        build_match controller, action
       )
     end
   end
@@ -108,13 +107,13 @@ defmodule Placid.Router do
   ## Arguments
 
   * `route` - `String|List`
-  * `handler` - `Atom`
+  * `controller` - `Atom`
   * `action` - `Atom`
   """
-  defmacro post(route, handler, action) do
+  defmacro post(route, controller, action) do
     quote do
       post unquote(route), do: unquote(
-        build_match handler, action
+        build_match controller, action
       )
     end
   end
@@ -125,13 +124,13 @@ defmodule Placid.Router do
   ## Arguments
 
   * `route` - `String|List`
-  * `handler` - `Atom`
+  * `controller` - `Atom`
   * `action` - `Atom`
   """
-  defmacro put(route, handler, action) do
+  defmacro put(route, controller, action) do
     quote do
       put unquote(route), do: unquote(
-        build_match handler, action
+        build_match controller, action
       )
     end
   end
@@ -142,13 +141,13 @@ defmodule Placid.Router do
   ## Arguments
 
   * `route` - `String|List`
-  * `handler` - `Atom`
+  * `controller` - `Atom`
   * `action` - `Atom`
   """
-  defmacro patch(route, handler, action) do
+  defmacro patch(route, controller, action) do
     quote do
       patch unquote(route), do: unquote(
-        build_match handler, action
+        build_match controller, action
       )
     end
   end
@@ -159,13 +158,13 @@ defmodule Placid.Router do
   ## Arguments
 
   * `route` - `String|List`
-  * `handler` - `Atom`
+  * `controller` - `Atom`
   * `action` - `Atom`
   """
-  defmacro delete(route, handler, action) do
+  defmacro delete(route, controller, action) do
     quote do
       delete unquote(route), do: unquote(
-        build_match handler, action
+        build_match controller, action
       )
     end
   end
@@ -176,13 +175,13 @@ defmodule Placid.Router do
   ## Arguments
 
   * `route` - `String|List`
-  * `handler` - `Atom`
+  * `controller` - `Atom`
   * `action` - `Atom`
   """
-  defmacro options(route, handler, action) do
+  defmacro options(route, controller, action) do
     quote do
       options unquote(route), do: unquote(
-        build_match handler, action
+        build_match controller, action
       )
     end
   end
@@ -193,19 +192,19 @@ defmodule Placid.Router do
   ## Arguments
 
   * `route` - `String|List`
-  * `handler` - `Atom`
+  * `controller` - `Atom`
   * `action` - `Atom`
   """
-  defmacro any(route, handler, action) do
+  defmacro any(route, controller, action) do
     quote do
       match unquote(route), do: unquote(
-        build_match handler, action
+        build_match controller, action
       )
     end
   end
 
   @doc """
-  Creates RESTful resource endpoints for a route/handler
+  Creates RESTful resource endpoints for a route/controller
   combination.
 
   ## Example
@@ -224,75 +223,55 @@ defmodule Placid.Router do
       delete  "/path" <> "/:id",      Controller, :delete
 
       options "/path" do
-        var!(conn)
-          |> resp(200, "") 
-          |> put_resp_header("Allow", "HEAD,GET,POST") 
-          |> send_resp
+        {:ok, var!(conn) |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET,POST") |> send_resp}
       end
       options "/path" <> "/new" do
-        var!(conn)
-          |> resp(200, "") 
-          |> put_resp_header("Allow", "HEAD,GET") 
-          |> send_resp
+        {:ok, var!(conn) |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET") |> send_resp}
       end
       options "/path" <> "/:_id" do
-        var!(conn)
-          |> resp(200, "") 
-          |> put_resp_header("Allow", "HEAD,GET,PUT,PATCH,DELETE") 
-          |> send_resp
+        {:ok, var!(conn) |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET,PUT,PATCH,DELETE") |> send_resp}
       end
       options "/path" <> "/:_id/edit" do
-        var!(conn)
-          |> resp(200, "") 
-          |> put_resp_header("Allow", "HEAD,GET") 
-          |> send_resp
+        {:ok, var!(conn) |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET") |> send_resp}
       end
   """
-  defmacro resource(route, handler) do
+  defmacro resource(route, controller) do
     quote do
-      get     unquote(route),                unquote(handler), :index
-      get     unquote(route) <> "/new",      unquote(handler), :new
-      post    unquote(route),                unquote(handler), :create
-      get     unquote(route) <> "/:id",      unquote(handler), :show
-      get     unquote(route) <> "/:id/edit", unquote(handler), :edit
-      put     unquote(route) <> "/:id",      unquote(handler), :update
-      patch   unquote(route) <> "/:id",      unquote(handler), :patch
-      delete  unquote(route) <> "/:id",      unquote(handler), :delete
+      get     unquote(route),                unquote(controller), :index
+      get     unquote(route) <> "/new",      unquote(controller), :new
+      post    unquote(route),                unquote(controller), :create
+      get     unquote(route) <> "/:id",      unquote(controller), :show
+      get     unquote(route) <> "/:id/edit", unquote(controller), :edit
+      put     unquote(route) <> "/:id",      unquote(controller), :update
+      patch   unquote(route) <> "/:id",      unquote(controller), :patch
+      delete  unquote(route) <> "/:id",      unquote(controller), :delete
 
       options unquote(route) do
-        var!(conn)
-          |> resp(200, "")
-          |> put_resp_header("Allow", "HEAD,GET,POST")
-          |> send_resp
+        conn = var!(conn)
+        conn |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET,POST") |> send_resp
       end
       options unquote(route <> "/new") do
-        var!(conn)
-          |> resp(200, "")
-          |> put_resp_header("Allow", "HEAD,GET")
-          |> send_resp
+        conn = var!(conn)
+        conn |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET") |> send_resp
       end
       options unquote(route <> "/:_id") do
-        var!(conn)
-          |> resp(200, "")
-          |> put_resp_header("Allow", "HEAD,GET,PUT,PATCH,DELETE")
-          |> send_resp
+        conn = var!(conn)
+        conn |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET,PUT,PATCH,DELETE") |> send_resp
       end
       options unquote(route <> "/:_id/edit") do
-        var!(conn)
-          |> resp(200, "")
-          |> put_resp_header("Allow", "HEAD,GET")
-          |> send_resp
+        conn = var!(conn)
+        conn |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET") |> send_resp
       end
     end
   end
 
-  defp build_match(handler, action) do
+  defp build_match(controller, action) do
     quote do
       binding = binding()
       conn = var!(conn)
 
-      # pass off to handler action
-      call_handler_action conn, unquote(handler), unquote(action), binding
+      # pass off to controller action
+      call_controller_action conn, unquote(controller), unquote(action), binding
     end
   end
 end
