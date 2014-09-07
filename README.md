@@ -4,6 +4,9 @@
 
 A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with Elixir.
 
+- [TODO](#todo)
+- [Routing](#routing)
+
 ## TODO
 
 - [ ] Compatibility with web frameworks via umbrella projects.
@@ -43,3 +46,51 @@ A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with El
   - [ ] [Describe stability](https://github.com/interagent/http-api-design#describe-stability)
   
 This list comes primarily from the [HTTP API Design Guide](https://github.com/interagent/http-api-design) by @interagent and [friends](https://github.com/interagent/http-api-design/graphs/contributors) but will be updated to fit the needs of the project.
+
+## Routing
+
+```elixir
+defmodule Router do
+  use Placid.Router
+
+  before_filter Filters, :set_headers
+
+  # Define one of the versions of the API
+  # with a simple version number "1"
+  # or following semver "1.0.0"
+  # or date of release "2014-09-06"
+  version "1" do 
+    # Define your routes here
+    get  "/",          Controllers.Hello, :index
+    get  "/pages",     Controllers.Hello, :create
+    post "/pages",     Controllers.Hello, :create
+    put  "/pages/:id" 
+         when id == 1, Controllers.Hello, :update_only_one
+    get  "/pages/:id", Controllers.Hello, :show
+    
+    # Auto-create a full set of routes for resources
+    #
+    resource :users, Controllers.User
+    #
+    # Generates:
+    #
+    # get     "/users",               Controllers.User, :index
+    # get     "/users/new",           Controllers.User, :new
+    # post    "/users",               Controllers.User, :create
+    # get     "/users/:user_id",      Controllers.User, :show
+    # get     "/users/:user_id/edit", Controllers.User, :edit
+    # put     "/users/:user_id",      Controllers.User, :update
+    # patch   "/users/:user_id",      Controllers.User, :patch
+    # delete  "/users/:user_id",      Controllers.User, :delete
+    #
+    # options "/users"                # "HEAD,GET,POST"
+    # options "/users/new"            # "HEAD,GET"
+    # options "/users/:_user_id"      # "HEAD,GET,PUT,PATCH,DELETE"
+    # options "/users/:_user_id/edit" # "HEAD,GET"
+  end
+end
+```
+
+`get`, `post`, `put`, `patch`, `delete`, `options`, and `any` are already built-in as described. `resource` exists but will need modifications to create everything as noted.
+
+`version` will need to be created outright. Will allow requests to contained endpoints when version exists in either `Accepts` header or URL (which ever is defined in app config).
