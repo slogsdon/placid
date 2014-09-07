@@ -32,4 +32,4 @@ A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with El
   - [ ] [Provide executable examples](https://github.com/interagent/http-api-design#provide-executable-examples)
   - [ ] [Describe stability](https://github.com/interagent/http-api-design#describe-stability)
   
-This list comes primarily from @interagent's [HTTP API Design Guide](https://github.com/interagent/http-api-design) but will be updated to fit the needs of the project.
+This list comes primarily from the [HTTP API Design Guide](https://github.com/interagent/http-api-design) by @interagent and [friends](https://github.com/interagent/http-api-design/graphs/contributors) but will be updated to fit the needs of the project.
