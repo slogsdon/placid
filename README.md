@@ -6,6 +6,8 @@ A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with El
 
 - [TODO](#todo)
 - [Routing](#routing)
+- [Handlers](#handlers)
+- [Rendering](#rendering)
 
 ## TODO
 
@@ -45,7 +47,7 @@ A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with El
   - [ ] [Provide executable examples](https://github.com/interagent/http-api-design#provide-executable-examples)
   - [ ] [Describe stability](https://github.com/interagent/http-api-design#describe-stability)
   
-This list comes primarily from the [HTTP API Design Guide](https://github.com/interagent/http-api-design) by @interagent and [friends](https://github.com/interagent/http-api-design/graphs/contributors) but will be updated to fit the needs of the project.
+This list comes primarily from the [HTTP API Design Guide](https://github.com/interagent/http-api-design) by [**@interagent**](/interagent) and [friends](https://github.com/interagent/http-api-design/graphs/contributors) but will be updated to fit the needs of the project.
 
 ## Routing
 
@@ -53,40 +55,49 @@ This list comes primarily from the [HTTP API Design Guide](https://github.com/in
 defmodule Router do
   use Placid.Router
 
-  before_filter Filters, :set_headers
-
   # Define one of the versions of the API
   # with a simple version number "1"
   # or following semver "1.0.0"
   # or date of release "2014-09-06"
   version "1" do 
     # Define your routes here
-    get  "/",          Controllers.Hello, :index
-    get  "/pages",     Controllers.Hello, :create
-    post "/pages",     Controllers.Hello, :create
-    put  "/pages/:id" 
-         when id == 1, Controllers.Hello, :update_only_one
-    get  "/pages/:id", Controllers.Hello, :show
+    get  "/",               Handlers.V1.Pages, :index
+    get  "/pages",          Handlers.V1.Pages, :create
+    post "/pages",          Handlers.V1.Pages, :create
+    put  "/pages/:page_id" when id == 1,
+                            Handlers.V1.Pages, :update_only_one
+    get  "/pages/:page_id", Handlers.V1.Pages, :show
     
     # Auto-create a full set of routes for resources
     #
-    resource :users, Controllers.User
+    resource :users,        Handlers.V1.User
     #
     # Generates:
     #
-    # get     "/users",               Controllers.User, :index
-    # get     "/users/new",           Controllers.User, :new
-    # post    "/users",               Controllers.User, :create
-    # get     "/users/:user_id",      Controllers.User, :show
-    # get     "/users/:user_id/edit", Controllers.User, :edit
-    # put     "/users/:user_id",      Controllers.User, :update
-    # patch   "/users/:user_id",      Controllers.User, :patch
-    # delete  "/users/:user_id",      Controllers.User, :delete
+    # get     "/users",               Handlers.V1.User, :index
+    # get     "/users/new",           Handlers.V1.User, :new
+    # post    "/users",               Handlers.V1.User, :create
+    # get     "/users/:user_id",      Handlers.V1.User, :show
+    # get     "/users/:user_id/edit", Handlers.V1.User, :edit
+    # put     "/users/:user_id",      Handlers.V1.User, :update
+    # patch   "/users/:user_id",      Handlers.V1.User, :patch
+    # delete  "/users/:user_id",      Handlers.V1.User, :delete
     #
     # options "/users"                # "HEAD,GET,POST"
     # options "/users/new"            # "HEAD,GET"
     # options "/users/:_user_id"      # "HEAD,GET,PUT,PATCH,DELETE"
     # options "/users/:_user_id/edit" # "HEAD,GET"
+  end
+
+  # An updated version of the AP
+  version "2" do 
+    get  "/",               Handlers.V2.Pages, :index
+    post "/pages",          Handlers.V2.Pages, :create
+    get  "/pages/:page_id", Handlers.V2.Pages, :show
+    put  "/pages/:page_id", Handlers.V2.Pages, :update
+    
+    resource :users,        Handlers.V2.User
+    resource :groups,       Handlers.V2.Group
   end
 end
 ```
@@ -94,3 +105,65 @@ end
 `get`, `post`, `put`, `patch`, `delete`, `options`, and `any` are already built-in as described. `resource` exists but will need modifications to create everything as noted.
 
 `version` will need to be created outright. Will allow requests to contained endpoints when version exists in either `Accepts` header or URL (which ever is defined in app config).
+
+Extra routes will need to be added for `*.json`, `*.xml`, etc. requests for optionally specifying desired content type without the use of the `Accepts` header.
+
+## Handlers
+
+```elixir
+defmodule Handlers.V2.Pages do
+  use Placid.Handler
+
+  @doc """
+  List all available pages
+  """
+  def index(conn, []) do
+    # Somehow get our content
+    pages = Queries.Page.all
+    render conn, pages
+  end
+
+  @doc """
+  Show an individual page
+  """
+  def show(conn, args) do
+    result = case Integer.parse args["page_id"] do
+        :error -> 
+          %Error{ id: "no_page_id",
+                  message: "A valid page_id is requried." }
+        {i, _} ->
+          Queries.Page.get i
+      end
+
+    render conn, result
+  end
+
+  @doc """
+  Create a new page
+  """
+  def create(conn, args) do
+    render conn, Queries.Page.create args, status: :created
+  end
+
+  @doc """
+  Update an individual page
+  """
+  def update(conn, args) do
+    result = case Integer.parse args["page_id"] do
+        :error -> 
+          %Error{ id: "no_page_id",
+                  message: "A valid page_id is requried." }
+        {i, _} ->
+          Queries.Page.update i, args
+      end
+
+    render conn, result
+  end
+end
+```
+
+Actions in handler modules are responsible for handling a request once it has been routed. These actions typically generate a response, whether that be an error, a result, or a result set, so that it can be rendered to the client with the correct content type further up the stack.
+
+## Rendering
+
+Render layer serializes/encodes data based on the requested content type unless overridden for whatever reason in the response stack.
