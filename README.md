@@ -1,53 +1,13 @@
-# placid
+# Placid
 [![Build Status](https://img.shields.io/travis/slogsdon/placid.svg)](https://travis-ci.org/slogsdon/placid)
 [![Coverage Status](https://img.shields.io/coveralls/slogsdon/placid.svg)](https://coveralls.io/r/slogsdon/placid)
 
 A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with Elixir.
 
-- [TODO](#todo)
 - [Routing](#routing)
 - [Handlers](#handlers)
 - [Rendering](#rendering)
-
-## TODO
-
-- [ ] Compatibility with web frameworks via umbrella projects.
-  - [ ] Would be nice to offer tight integration when available, e.g. `Phoenix.Topic` notifications
-- [ ] Respects HTTP specifications ([7230](http://tools.ietf.org/pdf/rfc7230.pdf), 
-  [7231](http://tools.ietf.org/pdf/rfc7231.pdf),
-  [7232](http://tools.ietf.org/pdf/rfc7232.pdf), 
-  [7233](http://tools.ietf.org/pdf/rfc7233.pdf), 
-  [7234](http://tools.ietf.org/pdf/rfc7234.pdf), 
-  [7235](http://tools.ietf.org/pdf/rfc7235.pdf))
-- [ ] [Foundations](https://github.com/interagent/http-api-design#foundations)
-  - [ ] [Require TLS](https://github.com/interagent/http-api-design#require-tls)
-  - [ ] [Version with Accepts header](https://github.com/interagent/http-api-design#version-with-accepts-header)
-  - [ ] [Support caching with Etags](https://github.com/interagent/http-api-design#support-caching-with-etags)
-  - [ ] [Trace requests with Request-Ids](https://github.com/interagent/http-api-design#trace-requests-with-request-ids)
-  - [ ] [Paginate with ranges](https://github.com/interagent/http-api-design#paginate-with-ranges)
-- [ ] [Requests](https://github.com/interagent/http-api-design#requests)
-  - [ ] [Return appropriate status codes](https://github.com/interagent/http-api-design#return-appropriate-status-codes)
-  - [ ] [Provide full resources where available](https://github.com/interagent/http-api-design#provide-full-resources-where-available)
-  - [ ] [Accept serialized JSON in request bodies](https://github.com/interagent/http-api-design#accept-serialized-json-in-request-bodies)
-  - [ ] [Use consistent path formats](https://github.com/interagent/http-api-design#use-consistent-path-formats)
-  - [ ] [Downcase paths and attributes](https://github.com/interagent/http-api-design#downcase-paths-and-attributes)
-  - [ ] [Support non-id dereferencing for convenience](https://github.com/interagent/http-api-design#support-non-id-dereferencing-for-convenience)
-  - [ ] [Minimize path nesting](https://github.com/interagent/http-api-design#minimize-path-nesting)
-- [ ] [Responses](https://github.com/interagent/http-api-design#responses)
-  - [ ] [Provide resource (UU)IDs](https://github.com/interagent/http-api-design#provide-resource-uuids)
-  - [ ] [Provide standard timestamps](https://github.com/interagent/http-api-design#provide-standard-timestamps)
-  - [ ] [Use UTC times formatted in ISO8601](https://github.com/interagent/http-api-design#use-utc-times-formatted-in-iso8601)
-  - [ ] [Nest foreign key relations](https://github.com/interagent/http-api-design#nest-foreign-key-relations)
-  - [ ] [Generate structured errors](https://github.com/interagent/http-api-design#generate-structured-errors)
-  - [ ] [Show rate limit status](https://github.com/interagent/http-api-design#show-rate-limit-status)
-  - [ ] [Keep JSON minified in all responses](https://github.com/interagent/http-api-design#keep-json-minified-in-all-responses)
-- [ ] [Artifacts](https://github.com/interagent/http-api-design#artifacts)
-  - [ ] [Provide machine-readable JSON schema](https://github.com/interagent/http-api-design#provide-machine-readable-json-schema)
-  - [ ] [Provide human-readable docs](https://github.com/interagent/http-api-design#provide-human-readable-docs)
-  - [ ] [Provide executable examples](https://github.com/interagent/http-api-design#provide-executable-examples)
-  - [ ] [Describe stability](https://github.com/interagent/http-api-design#describe-stability)
-  
-This list comes primarily from the [HTTP API Design Guide](https://github.com/interagent/http-api-design) by [**@interagent**](/interagent) and [friends](https://github.com/interagent/http-api-design/graphs/contributors) but will be updated to fit the needs of the project.
+- [TODO](#todo)
 
 ## Routing
 
@@ -167,3 +127,53 @@ Actions in handler modules are responsible for handling a request once it has be
 ## Rendering
 
 Render layer serializes/encodes data based on the requested content type unless overridden for whatever reason in the response stack.
+
+## Parsers
+
+Parsing request bodies from their content type to Elixir terms allows the handler actions to easily use that data in responding to the client. There should be one parser for each supported response content type, with an additional parser for form encoded data.
+
+## TODO
+
+- [ ] Compatibility with web frameworks via umbrella projects.
+  - [ ] Would be nice to offer tight integration when available, e.g. `Phoenix.Topic` notifications
+- [ ] Respects HTTP specifications ([7230](http://tools.ietf.org/pdf/rfc7230.pdf), 
+  [7231](http://tools.ietf.org/pdf/rfc7231.pdf),
+  [7232](http://tools.ietf.org/pdf/rfc7232.pdf), 
+  [7233](http://tools.ietf.org/pdf/rfc7233.pdf), 
+  [7234](http://tools.ietf.org/pdf/rfc7234.pdf), 
+  [7235](http://tools.ietf.org/pdf/rfc7235.pdf))
+- [ ] Foundations ([link](https://github.com/interagent/http-api-design#foundations))
+  - [ ] Require TLS ([link](https://github.com/interagent/http-api-design#require-tls))
+  - [ ] Version with Accepts header ([link](https://github.com/interagent/http-api-design#version-with-accepts-header))
+  - [ ] Support caching with Etags ([link](https://github.com/interagent/http-api-design#support-caching-with-etags))
+  - [ ] Trace requests with Request-Ids ([link](https://github.com/interagent/http-api-design#trace-requests-with-request-ids))
+  - [ ] Paginate with ranges ([link](https://github.com/interagent/http-api-design#paginate-with-ranges))
+- [ ] Requests ([link](https://github.com/interagent/http-api-design#requests))
+  - [ ] Return appropriate status codes ([link](https://github.com/interagent/http-api-design#return-appropriate-status-codes))
+  - [ ] Provide full resources where available ([link](https://github.com/interagent/http-api-design#provide-full-resources-where-available))
+  - [ ] Accept serialized JSON in request bodies ([link](https://github.com/interagent/http-api-design#accept-serialized-json-in-request-bodies))
+  - [ ] Use consistent path formats ([link](https://github.com/interagent/http-api-design#use-consistent-path-formats))
+  - [ ] Downcase paths and attributes ([link](https://github.com/interagent/http-api-design#downcase-paths-and-attributes))
+  - [ ] Support non-id dereferencing for convenience ([link](https://github.com/interagent/http-api-design#support-non-id-dereferencing-for-convenience))
+  - [ ] Minimize path nesting ([link](https://github.com/interagent/http-api-design#minimize-path-nesting))
+- [ ] Responses ([link](https://github.com/interagent/http-api-design#responses))
+  - [ ] Provide resource (UU)IDs ([link](https://github.com/interagent/http-api-design#provide-resource-uuids))
+  - [ ] Provide standard timestamps ([link](https://github.com/interagent/http-api-design#provide-standard-timestamps))
+  - [ ] Use UTC times formatted in ISO8601 ([link](https://github.com/interagent/http-api-design#use-utc-times-formatted-in-iso8601))
+  - [ ] Nest foreign key relations ([link](https://github.com/interagent/http-api-design#nest-foreign-key-relations))
+  - [ ] Generate structured errors ([link](https://github.com/interagent/http-api-design#generate-structured-errors))
+  - [ ] Show rate limit status ([link](https://github.com/interagent/http-api-design#show-rate-limit-status))
+  - [ ] Keep JSON minified in all responses ([link](https://github.com/interagent/http-api-design#keep-json-minified-in-all-responses))
+- [ ] Artifacts ([link](https://github.com/interagent/http-api-design#artifacts))
+  - [ ] Provide machine-readable JSON schema ([link](https://github.com/interagent/http-api-design#provide-machine-readable-json-schema))
+  - [ ] Provide human-readable docs ([link](https://github.com/interagent/http-api-design#provide-human-readable-docs))
+  - [ ] Provide executable examples ([link](https://github.com/interagent/http-api-design#provide-executable-examples))
+  - [ ] Describe stability ([link](https://github.com/interagent/http-api-design#describe-stability))
+  
+This list comes primarily from the [HTTP API Design Guide](https://github.com/interagent/http-api-design) by [**@interagent**](/interagent) and [friends](https://github.com/interagent/http-api-design/graphs/contributors) but will be updated to fit the needs of the project.
+
+## License
+
+Placid is released under the MIT License.
+
+See [LICENSE](https://github.com/slogsdon/placid/blob/master/LICENSE) for details.
