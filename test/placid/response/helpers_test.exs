@@ -66,7 +66,7 @@ defmodule Placid.Response.HelpersTest do
 
     assert conn.state === :sent
     assert conn.status === 401
-    assert conn.resp_body === "Halted"
+    assert conn.resp_body === "Unauthorized"
   end
 
   test "not_found/2" do
@@ -132,7 +132,7 @@ defmodule Placid.Response.HelpersTest do
   defmodule Handler do
     use Placid.Handler
     def create(conn, _args) do
-      halt! conn, [status: 204, message: "Created"]
+      halt! conn, status: :created
     end
   end
 end

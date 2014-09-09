@@ -198,16 +198,14 @@ defmodule Placid.Router do
   end
   defp build_match(method, route, controller, action, caller) do
     body = quote do
-        apply unquote(controller), 
-              unquote(action), 
-              [ conn, conn.params ]
+        unquote(controller).call conn, [ action: unquote(action), args: conn.params ]
       end
 
     do_build_match method, route, body, caller
   end
 
   defp do_build_match(:any, route, body, caller) do
-    { method, guards, _vars, match }  = prep_match :any, route, caller
+    { _method, guards, _vars, match }  = prep_match :any, route, caller
 
     quote do
       def do_match(_, unquote(match)) when unquote(guards) do

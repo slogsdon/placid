@@ -167,6 +167,7 @@ defmodule Placid.Response.StatusCodes do
   def find(:network_read_timeout_error), do: network_read_timeout_error
   def find(599), do: network_connect_timeout_error
   def find(:network_connect_timeout_error), do: network_connect_timeout_error
+  def find(_), do: ok
 
   @doc """
   This means that the server has received the request headers, and that the 
