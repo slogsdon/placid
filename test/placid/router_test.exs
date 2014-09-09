@@ -80,6 +80,15 @@ defmodule Placid.RouterTest do
     assert conn.params["foo"] == "baz"
   end
 
+  test "filter plug is run" do
+    conn = conn(:get, "/get")
+      |> Placid.RouterTest.Router.call([])
+
+    assert conn.state === :sent
+    assert conn.status === 200
+    assert get_resp_header(conn, "content-type") === ["application/json; charset=utf-8"]
+  end
+
   defmodule Foo do
     use Placid.Handler
 
@@ -137,12 +146,19 @@ defmodule Placid.RouterTest do
   defmodule Router do
     use Placid.Router
 
+    plug :set_utf8_json
+
     get      "/get",     Foo, :get
     post     "/post",    Foo, :post
     put      "/put",     Foo, :put
     patch    "/patch",   Foo, :patch
     delete   "/delete",  Foo, :delete
-    options  "/options", Foo, :options
+    options  "/options", "HEAD,GET"
     any      "/any",     Foo, :any
+
+    def set_utf8_json(%Plug.Conn{state: state} = conn, _) when state in [:unset, :set] do
+      conn |> put_resp_header("content-type", "application/json; charset=utf-8")
+    end
+    def set_utf8_json(conn, _), do: conn
   end
 end

@@ -16,156 +16,95 @@ defmodule Placid.Router do
   ## Example
 
       defmodule Router do
-        use Placid.Router, plugs: [
-          { Plugs.HotCodeReload, [] }
-        ]
+        use Placid.Router
 
-        before_filter Filters, :set_headers
+        plug Plugs.HotCodeReload
+        plug Filters.SetHeaders
 
         # Define your routes here
         get "/", Hello, :index
         get "/pages/:id", Hello, :show
         post "/pages", Hello, :create
-        put "/pages/:id" when id == 1, Hello, :show
+        put "/pages/:id" when id == 1, Hello, :update_only_one
       end
   """
+
+  @http_methods [ :get, :post, :put, :patch, :delete, :any ]
 
   ## Macros
 
   @doc """
   Macro used to add necessary items to a router.
   """
-  defmacro __using__(opts) do
+  defmacro __using__(_) do
     quote do
-      import unquote(__MODULE__)
-      import Plug.Conn
-      use Plug.Router
-      use Placid.Router.Filters
-      @before_compile unquote(__MODULE__)
+      import Placid.Response.Helpers
+      import Placid.Router
+      import Plug.Builder, only: [plug: 1, plug: 2]
+      @before_compile Placid.Router
+      @behaviour Plug
+      Module.register_attribute(__MODULE__, :plugs, accumulate: true)
 
-      plug Plug.Parsers, parsers: [Placid.Request.Parsers.JSON, :urlencoded, :multipart]
+      # Plugs we want early in the stack
+      plug Plug.Parsers, parsers: [ Placid.Request.Parsers.JSON, 
+                                    :urlencoded, 
+                                    :multipart ]
+    end
+  end
 
-      opts = unquote(opts)
-      if opts[:plugs] do
-        Enum.map opts[:plugs], fn({plug_module, plug_opts}) ->
-          plug plug_module, plug_opts
+  @doc false
+  defmacro __before_compile__(env) do
+    # Plugs we want predefined but aren't necessary to be before
+    # user-defined plugs
+    defaults = [ { Plug.MethodOverride, [] },  
+                 { :match, [] },
+                 { :dispatch, [] } ]
+    { conn, body } = Enum.reverse(defaults) ++ 
+                     Module.get_attribute(env.module, :plugs)
+                     |> Plug.Builder.compile
+
+    quote do
+      def init(opts) do
+        opts
+      end
+
+      def call(conn, opts) do
+        do_call(conn, opts)
+      end
+
+      def match(conn, _opts) do
+        plug_route = __MODULE__.do_match(conn.method, conn.path_info)
+        Plug.Conn.assign_private(conn, :plug_route,plug_route)
+      end
+
+      def dispatch(%Plug.Conn{ assigns: assigns } = conn, _opts) do
+        Map.get(conn.private, :plug_route).(conn)
+      end
+
+      # Our default match so `Plug` doesn't fall on
+      # its face when accessing an undefined route.
+      def do_match(_,_) do
+        fn conn -> 
+          not_found conn 
         end
       end
 
-      plug :match
-      plug :dispatch
+      defp do_call(unquote(conn), _), do: unquote(body)
     end
   end
 
-  @doc """
-  Defines a default route to catch all unmatched routes.
-  """
-  defmacro __before_compile__(env) do
-    module = env.module
-    # From Placid.Router.Filters
-    filters = Module.get_attribute(module, :filters)
+  for verb <- @http_methods do
+    @doc """
+    Macro for defining `#{verb |> to_string |> String.upcase}` routes.
 
-    quote do
-      # Our default match so Plug doesn't fall on its face
-      # when accessing an undefined route
-      Plug.Router.match _ do
-        conn = var!(conn)
-        Placid.Controller.not_found conn
-      end
+    ## Arguments
 
-      defp call_controller_action(%Plug.Conn{state: :unset} = conn, controller, action, binding) do
-        conn = call_before_filters(unquote(filters), action, conn)
-        conn = apply controller, :call_action, [action, conn, Keyword.delete(binding, :conn)]
-        call_after_filters(unquote(filters), action, conn)
-      end
-      defp call_controller_action(conn, _, _, _) do
-        conn
-      end
-    end
-  end
-
-  @doc """
-  Macro for defining `GET` routes.
-
-  ## Arguments
-
-  * `route` - `String|List`
-  * `controller` - `Atom`
-  * `action` - `Atom`
-  """
-  defmacro get(route, controller, action) do
-    quote do
-      get unquote(route), do: unquote(
-        build_match controller, action
-      )
-    end
-  end
-
-  @doc """
-  Macro for defining `POST` routes.
-
-  ## Arguments
-
-  * `route` - `String|List`
-  * `controller` - `Atom`
-  * `action` - `Atom`
-  """
-  defmacro post(route, controller, action) do
-    quote do
-      post unquote(route), do: unquote(
-        build_match controller, action
-      )
-    end
-  end
-
-  @doc """
-  Macro for defining `PUT` routes.
-
-  ## Arguments
-
-  * `route` - `String|List`
-  * `controller` - `Atom`
-  * `action` - `Atom`
-  """
-  defmacro put(route, controller, action) do
-    quote do
-      put unquote(route), do: unquote(
-        build_match controller, action
-      )
-    end
-  end
-
-  @doc """
-  Macro for defining `PATCH` routes.
-
-  ## Arguments
-
-  * `route` - `String|List`
-  * `controller` - `Atom`
-  * `action` - `Atom`
-  """
-  defmacro patch(route, controller, action) do
-    quote do
-      patch unquote(route), do: unquote(
-        build_match controller, action
-      )
-    end
-  end
-
-  @doc """
-  Macro for defining `DELETE` routes.
-
-  ## Arguments
-
-  * `route` - `String|List`
-  * `controller` - `Atom`
-  * `action` - `Atom`
-  """
-  defmacro delete(route, controller, action) do
-    quote do
-      delete unquote(route), do: unquote(
-        build_match controller, action
-      )
+    * `route` - `String|List`
+    * `controller` - `Atom`
+    * `action` - `Atom`
+    """
+    defmacro unquote(verb)(route, controller, action) do
+      build_match unquote(verb), route, controller, action, __CALLER__
     end
   end
 
@@ -178,29 +117,22 @@ defmodule Placid.Router do
   * `controller` - `Atom`
   * `action` - `Atom`
   """
-  defmacro options(route, controller, action) do
-    quote do
-      options unquote(route), do: unquote(
-        build_match controller, action
-      )
-    end
+  defmacro options(route, allows) do
+    build_match :options, route, allows, __CALLER__
   end
 
   @doc """
-  Macro for defining routes that match on all HTTP methods.
+  Macro for defining routes for custom HTTP methods.
 
   ## Arguments
 
+  * `method` - `Atom`
   * `route` - `String|List`
   * `controller` - `Atom`
   * `action` - `Atom`
   """
-  defmacro any(route, controller, action) do
-    quote do
-      match unquote(route), do: unquote(
-        build_match controller, action
-      )
-    end
+  defmacro raw(method, route, controller, action) do
+    build_match method, route, controller, action, __CALLER__
   end
 
   @doc """
@@ -209,69 +141,131 @@ defmodule Placid.Router do
 
   ## Example
 
-      resource "/path", Controller
+      resource :users, Controllers.User
 
   expands to
 
-      get     "/path",                Controller, :index
-      get     "/path" <> "/new",      Controller, :new
-      post    "/path",                Controller, :create
-      get     "/path" <> "/:id",      Controller, :show
-      get     "/path" <> "/:id/edit", Controller, :edit
-      put     "/path" <> "/:id",      Controller, :update
-      patch   "/path" <> "/:id",      Controller, :patch
-      delete  "/path" <> "/:id",      Controller, :delete
+      get,     "/users",           , Controllers.User, :index
+      post,    "/users",           , Controllers.User, :create
+      get,     "/users/new",       , Controllers.User, :new
+      get,     "/users/:id",       , Controllers.User, :show
+      get,     "/users/:id/edit",  , Controllers.User, :edit
+      put,     "/users/:id",       , Controllers.User, :update
+      patch,   "/users/:id",       , Controllers.User, :patch
+      delete,  "/users/:id",       , Controllers.User, :delete
 
-      options "/path" do
-        {:ok, var!(conn) |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET,POST") |> send_resp}
-      end
-      options "/path" <> "/new" do
-        {:ok, var!(conn) |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET") |> send_resp}
-      end
-      options "/path" <> "/:_id" do
-        {:ok, var!(conn) |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET,PUT,PATCH,DELETE") |> send_resp}
-      end
-      options "/path" <> "/:_id/edit" do
-        {:ok, var!(conn) |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET") |> send_resp}
-      end
+      options, "/users",           "HEAD,GET,POST"
+      options, "/users/new",       "HEAD,GET"
+      options, "/users/:_id",      "HEAD,GET,PUT,PATCH,DELETE"
+      options, "/users/:_id/edit", "HEAD,GET"
   """
-  defmacro resource(route, controller) do
-    quote do
-      get     unquote(route),                unquote(controller), :index
-      get     unquote(route) <> "/new",      unquote(controller), :new
-      post    unquote(route),                unquote(controller), :create
-      get     unquote(route) <> "/:id",      unquote(controller), :show
-      get     unquote(route) <> "/:id/edit", unquote(controller), :edit
-      put     unquote(route) <> "/:id",      unquote(controller), :update
-      patch   unquote(route) <> "/:id",      unquote(controller), :patch
-      delete  unquote(route) <> "/:id",      unquote(controller), :delete
+  defmacro resource(resource, controller) do
+    routes = 
+      [ { :get,     "/#{resource}",           :index },
+        { :post,    "/#{resource}",           :create },
+        { :get,     "/#{resource}/new",       :new },
+        { :get,     "/#{resource}/:id",       :show },
+        { :get,     "/#{resource}/:id/edit",  :edit },
+        { :put,     "/#{resource}/:id",       :update },
+        { :patch,   "/#{resource}/:id",       :patch },
+        { :delete,  "/#{resource}/:id",       :delete },
 
-      options unquote(route) do
-        conn = var!(conn)
-        conn |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET,POST") |> send_resp
-      end
-      options unquote(route <> "/new") do
-        conn = var!(conn)
-        conn |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET") |> send_resp
-      end
-      options unquote(route <> "/:_id") do
-        conn = var!(conn)
-        conn |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET,PUT,PATCH,DELETE") |> send_resp
-      end
-      options unquote(route <> "/:_id/edit") do
-        conn = var!(conn)
-        conn |> resp(200, "") |> put_resp_header("Allow", "HEAD,GET") |> send_resp
+        { :options, "/#{resource}",           "HEAD,GET,POST" },
+        { :options, "/#{resource}/new",       "HEAD,GET" },
+        { :options, "/#{resource}/:_id",      "HEAD,GET,PUT,PATCH,DELETE" },
+        { :options, "/#{resource}/:_id/edit", "HEAD,GET" } ]
+
+    
+    for {method, path, action} <- routes do
+      if is_atom(action) do
+        build_match method, path, controller, action, __CALLER__
+      else
+        build_match method, path, action, __CALLER__
       end
     end
   end
 
-  defp build_match(controller, action) do
-    quote do
-      binding = binding()
-      conn = var!(conn)
+  # Builds a `do_match/2` function body for a given route.
+  defp build_match(:options, route, allows, caller) do
+    body = quote do
+        conn 
+          |> resp(200, "") 
+          |> put_resp_header("Allow", unquote(allows)) 
+          |> send_resp
+      end
 
-      # pass off to controller action
-      call_controller_action conn, unquote(controller), unquote(action), binding
+    do_build_match :options, route, body, caller
+  end
+  defp build_match(method, route, controller, action, caller) do
+    body = quote do
+        apply unquote(controller), 
+              unquote(action), 
+              [ conn, conn.params ]
+      end
+
+    do_build_match method, route, body, caller
+  end
+
+  defp do_build_match(:any, route, body, caller) do
+    { method, guards, _vars, match }  = prep_match :any, route, caller
+
+    quote do
+      def do_match(_, unquote(match)) when unquote(guards) do
+        fn conn ->
+          unquote(body)
+        end
+      end
     end
+  end
+  defp do_build_match(method, route, body, caller) do
+    { method, guards, _vars, match }  = prep_match method, route, caller
+
+    quote do
+      def do_match(unquote(method), unquote(match)) when unquote(guards) do
+        fn conn ->
+          unquote(body)
+        end
+      end
+    end
+  end
+
+  defp prep_match(method, route, caller) do
+    { method, guard } = convert_methods(List.wrap(method))
+    { path, guards }  = extract_path_and_guards(route, guard)
+    { vars, match }   = apply Plug.Router.Utils, 
+                              :build_match, 
+                              [ Macro.expand(path, caller) ]
+    { method, guards, vars, match }
+  end
+
+  ## Grabbed from `Plug.Router`
+
+  # Convert the verbs given with :via into a variable
+  # and guard set that can be added to the dispatch clause.
+  defp convert_methods([]) do
+    { quote(do: _), true }
+  end
+
+  defp convert_methods([method]) do
+    { Plug.Router.Utils.normalize_method(method), true }
+  end
+
+  defp convert_methods(methods) do
+    methods = Enum.map methods, &Plug.Router.Utils.normalize_method(&1)
+    var = quote do: method
+    { var, quote(do: unquote(var) in unquote(methods)) }
+  end
+
+  # Extract the path and guards from the path.
+  defp extract_path_and_guards({ :when, _, [ path, guards ] }, true) do
+    { path, guards }
+  end
+
+  defp extract_path_and_guards({ :when, _, [ path, guards ] }, extra_guard) do
+    { path, { :and, [], [ guards, extra_guard ] } }
+  end
+
+  defp extract_path_and_guards(path, extra_guard) do
+    { path, extra_guard }
   end
 end
