@@ -23,16 +23,12 @@ defmodule Placid.Handler do
 
   @doc false
   defmacro __before_compile__(env) do
-    before_plugs = Module.get_attribute(env.module, :plugs)
-                   |> Enum.filter(fn { _, opts } ->
-                      opts[:run] === nil || opts[:run] === :before
-                   end)
-                   |> remove_run_option
-    after_plugs = Module.get_attribute(env.module, :plugs)
-                  |> Enum.filter(fn { _, opts } ->
-                    opts[:run] === :after
-                  end)
-                  |> remove_run_option
+    plugs = Module.get_attribute(env.module, :plugs)
+            |> Enum.map(fn { plug, opts } ->
+              { plug, Keyword.put_new(opts, :run, :before) }
+            end)
+
+    plug_stacks = build_plug_stacks plugs
 
     quote do
       def init(opts) do
@@ -40,70 +36,76 @@ defmodule Placid.Handler do
       end
 
       def call(conn, opts) do
-        conn = do_call :before, conn, opts
+        conn = do_call conn, :before, opts[:action]
         conn = apply __MODULE__, opts[:action], [ conn, opts[:args] ]
-        do_call :after, conn, opts
+        do_call conn, :after, opts[:action]
       end
 
-      defp do_call(:before, conn, opts) do
-        plugs = only_match_action before_plugs, opts
-        call_plug_stack conn, plugs
-      end
+      unquote(plug_stacks)
+    end
+  end
 
-      defp do_call(:after, conn, opts) do
-        plugs = only_match_action after_plugs, opts
-        call_plug_stack conn, plugs
-      end
+  defp build_plug_stacks(plugs) do
+    only_actions = get_only_actions plugs
 
-      defp call_plug_stack(conn, []), do: conn
-      defp call_plug_stack(conn, stack) do
-        Enum.reduce stack, conn, &call_plug(&2, &1)
-      end
+    for action <- only_actions ++ [nil] do
+      build_plug_stacks_for action, plugs
+    end
+  end
 
-      defp call_plug(conn, { plug, opts }) do
-        { conn, caller } = case Atom.to_char_list(plug) do
-            'Elixir.' ++ _ ->
-              conn = plug.call conn, plug.init(opts)
-              { conn, "#{inspect plug}" }
-            _ ->
-              conn = apply __MODULE__, plug, [ conn, opts ]
-              { conn, "#{plug}" }
-          end 
-        ensure_conn_returned conn, caller
-      end
+  defp build_plug_stacks_for(action, plugs) do
+    before_body = build_calls_for(:before, action, plugs)
+    after_body = build_calls_for(:after, action, plugs)
 
-      defp only_match_action(stack, opts) do
-        Enum.filter stack, fn { _, plug_opts } ->
-          plug_opts[:only] === nil || 
-          opts[:action] === plug_opts[:only] ||
-          opts[:action] in plug_opts[:only]
-        end
-      end
+    quote do
+      unquote(before_body)
+      unquote(after_body)
+    end
+  end
 
-      defp ensure_conn_returned(conn, caller) do
-        case conn do
-          %Plug.Conn{halted: true} = c ->
-            c
-          %Plug.Conn{} = c ->
-            c
-          _ ->
-            raise "expected #{caller}/2 to return a Plug.Conn"
-        end
-      end
+  defp build_calls_for(before_or_after, nil, plugs) do
+    { conn, body } = plugs
+                  |> Enum.filter(fn { _, opts } ->
+                    opts[:only] === nil
+                  end)
+                  |> Enum.filter(fn { _, opts } ->
+                    opts[:run] === before_or_after
+                  end)
+                  |> Plug.Builder.compile
 
-      defp before_plugs do
-        unquote(before_plugs)
+    quote do
+      defp do_call(unquote(conn), unquote(before_or_after), _) do
+        unquote(body)
       end
+    end
+  end
+  defp build_calls_for(before_or_after, action, plugs) do
+    { conn, body } = plugs
+                  |> Enum.filter(fn { _, opts } ->
+                    opts[:only] === nil || 
+                    action === opts[:only] ||
+                    action in opts[:only]
+                  end)
+                  |> Enum.filter(fn { _, opts } ->
+                    opts[:run] === before_or_after
+                  end)
+                  |> Plug.Builder.compile
 
-      defp after_plugs do
-        unquote(after_plugs)
+    quote do
+      defp do_call(unquote(conn), unquote(before_or_after), unquote(action)) do
+        unquote(body)
       end
     end
   end
 
-  defp remove_run_option(plugs) do
-    Enum.map plugs, fn { plug, opts } ->
-      { plug, opts |> Keyword.delete(:run) }
-    end
+  defp get_only_actions(plugs) do
+    plugs
+      |> Enum.filter(fn { _, opts } ->
+        opts[:only] != nil
+      end)
+      |> Enum.flat_map(fn { _, opts } ->
+        opts[:only]
+      end)
+      |> Enum.uniq
   end
 end
