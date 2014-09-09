@@ -1,12 +1,7 @@
 defmodule Placid.Response.Helpers do
   @moduledoc """
-  All handler actions should have an arrity of 2, with the
-  first argument being a `Plug.Conn` representing the current
-  connection and the second argument being a `Keyword` list
-  of any parameters captured in the route path.
-
-  Placid bundles these response helpers to assist in sending a
-  response:
+  Placid bundles these response helpers with handlers to 
+  assist in sending a response:
 
   * `render/4` - `conn`, `data`, `opts` - sends a normal response.
   * `halt!/2` - `conn`, `opts` - ends the response.

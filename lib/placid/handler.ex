@@ -1,4 +1,11 @@
 defmodule Placid.Handler do
+  @moduledoc """
+  All handler actions should have an arrity of 2, with the
+  first argument being a `Plug.Conn` representing the current
+  connection and the second argument being a `Keyword` list
+  of any parameters captured in the route path.
+  """
+
   @doc """
   Macro used to add necessary items to a handler.
   """
