@@ -5,13 +5,13 @@ defmodule Placid.Router do
 
   Routes are defined with the form:
 
-      method route [guard], controller, action
+      method route [guard], handler, action
 
   `method` is `get`, `post`, `put`, `patch`, `delete`, or `options`,
   each responsible for a single HTTP method. `method` can also be
-  `any`, which will match on all HTTP methods. `controller` is any
+  `any`, which will match on all HTTP methods. `handler` is any
   valid Elixir module name, and `action` is any valid function
-  defined in the `controller` module.
+  defined in the `handler` module.
 
   ## Example
 
@@ -100,11 +100,11 @@ defmodule Placid.Router do
     ## Arguments
 
     * `route` - `String|List`
-    * `controller` - `Atom`
+    * `handler` - `Atom`
     * `action` - `Atom`
     """
-    defmacro unquote(verb)(route, controller, action) do
-      build_match unquote(verb), route, controller, action, __CALLER__
+    defmacro unquote(verb)(route, handler, action) do
+      build_match unquote(verb), route, handler, action, __CALLER__
     end
   end
 
@@ -114,7 +114,7 @@ defmodule Placid.Router do
   ## Arguments
 
   * `route` - `String|List`
-  * `controller` - `Atom`
+  * `handler` - `Atom`
   * `action` - `Atom`
   """
   defmacro options(route, allows) do
@@ -128,44 +128,40 @@ defmodule Placid.Router do
 
   * `method` - `Atom`
   * `route` - `String|List`
-  * `controller` - `Atom`
+  * `handler` - `Atom`
   * `action` - `Atom`
   """
-  defmacro raw(method, route, controller, action) do
-    build_match method, route, controller, action, __CALLER__
+  defmacro raw(method, route, handler, action) do
+    build_match method, route, handler, action, __CALLER__
   end
 
   @doc """
-  Creates RESTful resource endpoints for a route/controller
+  Creates RESTful resource endpoints for a route/handler
   combination.
 
   ## Example
 
-      resource :users, Controllers.User
+      resource :users, Handlers.User
 
   expands to
 
-      get,     "/users",           , Controllers.User, :index
-      post,    "/users",           , Controllers.User, :create
-      get,     "/users/new",       , Controllers.User, :new
-      get,     "/users/:id",       , Controllers.User, :show
-      get,     "/users/:id/edit",  , Controllers.User, :edit
-      put,     "/users/:id",       , Controllers.User, :update
-      patch,   "/users/:id",       , Controllers.User, :patch
-      delete,  "/users/:id",       , Controllers.User, :delete
+      get,     "/users",           Handlers.User, :index
+      post,    "/users",           Handlers.User, :create
+      get,     "/users/:id",       Handlers.User, :show
+      put,     "/users/:id",       Handlers.User, :update
+      patch,   "/users/:id",       Handlers.User, :patch
+      delete,  "/users/:id",       Handlers.User, :delete
 
       options, "/users",           "HEAD,GET,POST"
       options, "/users/new",       "HEAD,GET"
       options, "/users/:_id",      "HEAD,GET,PUT,PATCH,DELETE"
       options, "/users/:_id/edit", "HEAD,GET"
   """
-  defmacro resource(resource, controller) do
+  defmacro resource(resource, handler) do
     routes = 
       [ { :get,     "/#{resource}",           :index },
         { :post,    "/#{resource}",           :create },
-        { :get,     "/#{resource}/new",       :new },
         { :get,     "/#{resource}/:id",       :show },
-        { :get,     "/#{resource}/:id/edit",  :edit },
         { :put,     "/#{resource}/:id",       :update },
         { :patch,   "/#{resource}/:id",       :patch },
         { :delete,  "/#{resource}/:id",       :delete },
@@ -178,7 +174,7 @@ defmodule Placid.Router do
     
     for {method, path, action} <- routes do
       if is_atom(action) do
-        build_match method, path, controller, action, __CALLER__
+        build_match method, path, handler, action, __CALLER__
       else
         build_match method, path, action, __CALLER__
       end
@@ -196,9 +192,10 @@ defmodule Placid.Router do
 
     do_build_match :options, route, body, caller
   end
-  defp build_match(method, route, controller, action, caller) do
+  defp build_match(method, route, handler, action, caller) do
     body = quote do
-        unquote(controller).call conn, [ action: unquote(action), args: conn.params ]
+        opts = [ action: unquote(action), args: binding() ]
+        unquote(handler).call conn, unquote(handler).init(opts)
       end
 
     do_build_match method, route, body, caller
@@ -246,12 +243,6 @@ defmodule Placid.Router do
 
   defp convert_methods([method]) do
     { Plug.Router.Utils.normalize_method(method), true }
-  end
-
-  defp convert_methods(methods) do
-    methods = Enum.map methods, &Plug.Router.Utils.normalize_method(&1)
-    var = quote do: method
-    { var, quote(do: unquote(var) in unquote(methods)) }
   end
 
   # Extract the path and guards from the path.

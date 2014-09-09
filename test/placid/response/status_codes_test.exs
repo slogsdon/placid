@@ -580,4 +580,12 @@ defmodule Placid.Response.StatusCodesTest do
     assert StatusCodes.find(:network_connect_timeout_error) === expected
     assert StatusCodes.find(599) === expected
   end
+
+  test "unknown status codes return OK" do
+    expected = %StatusCode{code: 200, reason: "OK"}
+
+    assert StatusCodes.find(:ok_but_why) === expected
+    assert StatusCodes.find(20000) === expected
+    assert StatusCodes.find(nil) === expected
+  end
 end

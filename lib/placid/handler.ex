@@ -63,7 +63,7 @@ defmodule Placid.Handler do
       defp call_plug(conn, { plug, opts }) do
         { conn, caller } = case Atom.to_char_list(plug) do
             'Elixir.' ++ _ ->
-              conn = plug.call conn, opts
+              conn = plug.call conn, plug.init(opts)
               { conn, "#{inspect plug}" }
             _ ->
               conn = apply __MODULE__, plug, [ conn, opts ]
