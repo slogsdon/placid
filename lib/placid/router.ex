@@ -189,9 +189,9 @@ defmodule Placid.Router do
   defp build_match(:options, route, allows, caller) do
     body = quote do
         conn 
-          |> resp(200, "") 
-          |> put_resp_header("Allow", unquote(allows)) 
-          |> send_resp
+          |> Plug.Conn.resp(200, "") 
+          |> Plug.Conn.put_resp_header("Allow", unquote(allows)) 
+          |> Plug.Conn.send_resp
       end
 
     do_build_match :options, route, body, caller
