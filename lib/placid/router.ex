@@ -145,40 +145,55 @@ defmodule Placid.Router do
 
   expands to
 
-      get,     "/users",           Handlers.User, :index
-      post,    "/users",           Handlers.User, :create
-      get,     "/users/:id",       Handlers.User, :show
-      put,     "/users/:id",       Handlers.User, :update
-      patch,   "/users/:id",       Handlers.User, :patch
-      delete,  "/users/:id",       Handlers.User, :delete
+      get,     "/users",      Handlers.User, :index
+      post,    "/users",      Handlers.User, :create
+      get,     "/users/:id",  Handlers.User, :show
+      put,     "/users/:id",  Handlers.User, :update
+      patch,   "/users/:id",  Handlers.User, :patch
+      delete,  "/users/:id",  Handlers.User, :delete
 
-      options, "/users",           "HEAD,GET,POST"
-      options, "/users/new",       "HEAD,GET"
-      options, "/users/:_id",      "HEAD,GET,PUT,PATCH,DELETE"
-      options, "/users/:_id/edit", "HEAD,GET"
+      options, "/users",      "HEAD,GET,POST"
+      options, "/users/:_id", "HEAD,GET,PUT,PATCH,DELETE"
   """
-  defmacro resource(resource, handler) do
-    routes = 
-      [ { :get,     "/#{resource}",           :index },
-        { :post,    "/#{resource}",           :create },
-        { :get,     "/#{resource}/:id",       :show },
-        { :put,     "/#{resource}/:id",       :update },
-        { :patch,   "/#{resource}/:id",       :patch },
-        { :delete,  "/#{resource}/:id",       :delete },
+  defmacro resource(resource, handler, opts \\ []) do
+    arg     = Keyword.get(opts, :arg, :id)
+    allowed = Keyword.get(opts, :only, [ :index, :create, :show,
+                                         :update, :patch, :delete ])
+    routes  = 
+      [ { :get,     "/#{resource}",          :index },
+        { :post,    "/#{resource}",          :create },
+        { :get,     "/#{resource}/:#{arg}",  :show },
+        { :put,     "/#{resource}/:#{arg}",  :update },
+        { :patch,   "/#{resource}/:#{arg}",  :patch },
+        { :delete,  "/#{resource}/:#{arg}",  :delete } ]
 
-        { :options, "/#{resource}",           "HEAD,GET,POST" },
-        { :options, "/#{resource}/new",       "HEAD,GET" },
-        { :options, "/#{resource}/:_id",      "HEAD,GET,PUT,PATCH,DELETE" },
-        { :options, "/#{resource}/:_id/edit", "HEAD,GET" } ]
+    options_routes =
+      [ { "/#{resource}",          [ index: :get, create: :post ] },
+        { "/#{resource}/:_#{arg}", [ show: :get, update: :put,
+                                     patch: :patch, delete: :delete ] } ]
 
-    
-    for {method, path, action} <- routes do
-      if is_atom(action) do
-        build_match method, path, handler, action, __CALLER__
-      else
-        build_match method, path, action, __CALLER__
-      end
+    for { method, path, action } <- routes |> filter(allowed) do
+      build_match method, path, handler, action, __CALLER__
+    end ++ for { path, methods } <- options_routes do
+      allows = methods
+                |> filter(allowed)
+                |> Enum.map(fn { _, m } ->
+                  Plug.Router.Utils.normalize_method(m)
+                end)
+                |> Enum.join(",")
+      build_match :options, path, "HEAD,#{allows}", __CALLER__
     end
+  end
+
+  defp filter(list, allowed) do
+    Enum.filter list, &do_filter(&1, allowed)
+  end
+
+  defp do_filter({ _, _, action }, allowed) do
+    action in allowed
+  end
+  defp do_filter({ action, _ }, allowed) do
+    action in allowed
   end
 
   # Builds a `do_match/2` function body for a given route.
