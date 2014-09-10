@@ -30,31 +30,29 @@ defmodule Router do
     
     # Auto-create a full set of routes for resources
     #
-    resource :users,        Handlers.V1.User
+    resource :users,        Handlers.V1.User, arg: :user_id
     #
     # Generates:
     #
-    # get     "/users",               Handlers.V1.User, :index
-    # get     "/users/new",           Handlers.V1.User, :new
-    # post    "/users",               Handlers.V1.User, :create
-    # get     "/users/:user_id",      Handlers.V1.User, :show
-    # get     "/users/:user_id/edit", Handlers.V1.User, :edit
-    # put     "/users/:user_id",      Handlers.V1.User, :update
-    # patch   "/users/:user_id",      Handlers.V1.User, :patch
-    # delete  "/users/:user_id",      Handlers.V1.User, :delete
+    # get     "/users",           Handlers.V1.User, :index
+    # post    "/users",           Handlers.V1.User, :create
+    # get     "/users/:user_id",  Handlers.V1.User, :show
+    # put     "/users/:user_id",  Handlers.V1.User, :update
+    # patch   "/users/:user_id",  Handlers.V1.User, :patch
+    # delete  "/users/:user_id",  Handlers.V1.User, :delete
     #
-    # options "/users"                # "HEAD,GET,POST"
-    # options "/users/new"            # "HEAD,GET"
-    # options "/users/:_user_id"      # "HEAD,GET,PUT,PATCH,DELETE"
-    # options "/users/:_user_id/edit" # "HEAD,GET"
+    # options "/users",           "HEAD,GET,POST"
+    # options "/users/:_user_id", "HEAD,GET,PUT,PATCH,DELETE"
   end
 
   # An updated version of the AP
   version "2" do 
-    get  "/",               Handlers.V2.Pages, :index
-    post "/pages",          Handlers.V2.Pages, :create
-    get  "/pages/:page_id", Handlers.V2.Pages, :show
-    put  "/pages/:page_id", Handlers.V2.Pages, :update
+    get  "/",               Handlers.V2.Pages,  :index
+    post "/pages",          Handlers.V2.Pages,  :create
+    get  "/pages/:page_id", Handlers.V2.Pages,  :show
+    put  "/pages/:page_id", Handlers.V2.Pages,  :update
+
+    raw :trace, "/trace",   Handlers.V2.Tracer, :trace
     
     resource :users,        Handlers.V2.User
     resource :groups,       Handlers.V2.Group
@@ -62,9 +60,11 @@ defmodule Router do
 end
 ```
 
-`get`, `post`, `put`, `patch`, `delete`, `options`, and `any` are already built-in as described. `resource` exists but will need modifications to create everything as noted.
+`get/3`, `post/3`, `put/3`, `patch/3`, `delete/3`, `options/2`, and `any/3` are already built-in as described. `resource` exists but will need modifications to create everything as noted.
 
-`version` will need to be created outright. Will allow requests to contained endpoints when version exists in either `Accepts` header or URL (which ever is defined in app config).
+`raw/4` allows for using custom HTTP methods, allowing your application to be HTTP spec compliant.
+
+`version/2` will need to be created outright. Will allow requests to contained endpoints when version exists in either `Accepts` header or URL (which ever is defined in app config).
 
 Extra routes will need to be added for `*.json`, `*.xml`, etc. requests for optionally specifying desired content type without the use of the `Accepts` header.
 
@@ -124,13 +124,18 @@ end
 
 Actions in handler modules are responsible for handling a request once it has been routed. These actions typically generate a response, whether that be an error, a result, or a result set, so that it can be rendered to the client with the correct content type further up the stack.
 
-## Rendering
-
-Render layer serializes/encodes data based on the requested content type unless overridden for whatever reason in the response stack.
-
 ## Parsers
 
 Parsing request bodies from their content type to Elixir terms allows the handler actions to easily use that data in responding to the client. There should be one parser for each supported response content type, with an additional parser for form encoded data.
+
+Current Parsers:
+
+- JSON - Encoded into standard map
+- XML - Encoded into a list of maps, each containing a representation of XML nodes from the request body
+
+## Rendering
+
+Render layer serializes/encodes data based on the requested content type unless overridden for whatever reason in the response stack.
 
 ## TODO
 
