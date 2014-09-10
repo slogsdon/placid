@@ -4,7 +4,7 @@ defmodule Placid.Mixfile do
   def project do
     [ app: :placid,
       version: "0.0.1",
-      elixir: "~> 1.0.0",
+      elixir: "~> 1.0.0-rc1 or ~> 1.0.0",
       deps: deps,
       name: "Placid",
       package: package,
