@@ -56,7 +56,8 @@ defmodule Placid.Router do
   defmacro __before_compile__(env) do
     # Plugs we want predefined but aren't necessary to be before
     # user-defined plugs
-    defaults = [ { Plug.MethodOverride, [] },  
+    defaults = [ { Plug.Head, [] },
+                 { Plug.MethodOverride, [] },  
                  { :match, [] },
                  { :dispatch, [] } ]
     { conn, body } = Enum.reverse(defaults) ++ 
