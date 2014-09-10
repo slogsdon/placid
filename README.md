@@ -133,6 +133,7 @@ Current Parsers:
 
 - JSON - Encoded into standard map
 - XML - Encoded into a list of maps, each containing a representation of XML nodes from the request body
+- WWW-Encoded and Multipart form data - Encoded into a standard map
 
 ## Rendering
 

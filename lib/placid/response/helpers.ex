@@ -31,7 +31,6 @@ defmodule Placid.Response.Helpers do
 
   import Plug.Conn
   alias Placid.Response.StatusCode
-  alias Placid.Response.StatusCodes
 
   @type status_code :: atom | 100..999
   @type enumerable  :: Keyword | Map | List
@@ -48,10 +47,10 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec status(map, status_code) :: map
+  @spec status(Plug.Conn.t, status_code) :: Plug.Conn.t
   def status(conn, status_code) when is_integer(status_code)
                                 when is_atom(status_code) do
-    %StatusCode{code: code} = status_code |> StatusCodes.find
+    %StatusCode{code: code} = status_code |> StatusCode.find
     %Plug.Conn{ conn | status: code, 
                        state: :set }
   end
@@ -68,7 +67,7 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec headers(map, map) :: map
+  @spec headers(Plug.Conn.t, Plug.Conn.headers) :: Plug.Conn.t
   def headers(conn, headers) do
     %Plug.Conn{ conn | resp_headers: headers, 
                        state: :set }
@@ -87,7 +86,7 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec raw(map) :: map
+  @spec raw(Plug.Conn.t) :: Plug.Conn.t
   def raw(conn) do
     conn |> send_resp
   end
@@ -105,10 +104,10 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec render(map, enumerable, Keyword.t) :: map
+  @spec render(Plug.Conn.t, enumerable, Keyword.t) :: Plug.Conn.t
   def render(conn, data, opts \\ []) do
     opts = [ status: 200 ] |> Keyword.merge opts
-    %StatusCode{code: code} = opts[:status] |> StatusCodes.find
+    %StatusCode{code: code} = opts[:status] |> StatusCode.find
     conn
       |> put_resp_content_type_if_not_sent(opts[:content_type] || "text/html")
       |> send_resp_if_not_sent(code, data)
@@ -126,10 +125,10 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec halt!(map, Keyword.t) :: map
+  @spec halt!(Plug.Conn.t, Keyword.t) :: Plug.Conn.t
   def halt!(conn, opts \\ []) do
     opts = [ status: 401] |> Keyword.merge opts
-    %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCodes.find
+    %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCode.find
     conn
       |> send_resp_if_not_sent(code, reason)
   end
@@ -145,7 +144,7 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec not_found(map, binary) :: map
+  @spec not_found(Plug.Conn.t, binary) :: Plug.Conn.t
   def not_found(conn, message \\ "Not Found") do
     conn
       |> send_resp_if_not_sent(404, message)
@@ -165,7 +164,7 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec forward(map, atom, atom, Keyword.t) :: map
+  @spec forward(Plug.Conn.t, atom, atom, Keyword.t) :: Plug.Conn.t
   def forward(conn, handler, action, args \\ []) do
     handler.call conn, [ action: action, args: args ++ conn.params ]
   end
@@ -183,10 +182,10 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec redirect(map, binary, Keyword.t) :: map
+  @spec redirect(Plug.Conn.t, binary, Keyword.t) :: Plug.Conn.t
   def redirect(conn, location, opts \\ []) do
     opts = [ status: 302 ] |> Keyword.merge opts
-    %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCodes.find   
+    %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCode.find   
     conn
       |> put_resp_header_if_not_sent("Location", location)
       |> send_resp_if_not_sent(code, reason)
