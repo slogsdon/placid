@@ -6,6 +6,7 @@ A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with El
 
 - [Routing](#routing)
 - [Handlers](#handlers)
+- [Request Parsing](#request-parsing)
 - [Rendering](#rendering)
 - [TODO](#todo)
 
@@ -124,7 +125,7 @@ end
 
 Actions in handler modules are responsible for handling a request once it has been routed. These actions typically generate a response, whether that be an error, a result, or a result set, so that it can be rendered to the client with the correct content type further up the stack.
 
-## Parsers
+## Request Parsing
 
 Parsing request bodies from their content type to Elixir terms allows the handler actions to easily use that data in responding to the client. There should be one parser for each supported response content type, with an additional parser for form encoded data.
 
