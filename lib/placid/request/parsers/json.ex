@@ -10,7 +10,6 @@ defmodule Placid.Request.Parsers.JSON do
         { :error, :too_large, conn }
     end
   end
-
   def parse(conn, _type, _subtype, _headers, _opts) do
     { :next, conn }
   end

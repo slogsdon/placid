@@ -47,6 +47,7 @@ defmodule Placid.Router do
 
       # Plugs we want early in the stack
       plug Plug.Parsers, parsers: [ Placid.Request.Parsers.JSON, 
+                                    Placid.Request.Parsers.XML,
                                     :urlencoded, 
                                     :multipart ]
     end
