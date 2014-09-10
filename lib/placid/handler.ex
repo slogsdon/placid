@@ -4,11 +4,53 @@ defmodule Placid.Handler do
   first argument being a `Plug.Conn` representing the current
   connection and the second argument being a `Keyword` list
   of any parameters captured in the route path.
+
+  ## Example
+
+      defmodule Handlers.V2.Pages do
+        use Placid.Handler
+
+        @doc false
+        def index(conn, []) do
+          # Somehow get our content
+          pages = Queries.Page.all
+          render conn, pages
+        end
+
+        @doc false
+        def show(conn, args) do
+          result = case Integer.parse args["page_id"] do
+              :error -> 
+                %Error{ id: "no_page_id",
+                        message: "A valid page_id is required." }
+              {i, _} ->
+                Queries.Page.get i
+            end
+
+          render conn, result
+        end
+
+        @doc false
+        def create(conn, args) do
+          render conn, Queries.Page.create args, status: :created
+        end
+
+        @doc false
+        def update(conn, args) do
+          result = case Integer.parse args["page_id"] do
+              :error -> 
+                %Error{ id: "no_page_id",
+                        message: "A valid page_id is requried." }
+              {i, _} ->
+                Queries.Page.update i, args
+            end
+
+          render conn, result
+        end
+      end
   """
 
-  @doc """
-  Macro used to add necessary items to a handler.
-  """
+  @doc false
   defmacro __using__(_) do
     quote do
       import Plug.Conn
@@ -40,6 +82,8 @@ defmodule Placid.Handler do
         conn = apply __MODULE__, opts[:action], [ conn, opts[:args] ]
         do_call conn, :after, opts[:action]
       end
+
+      defoverridable [init: 1, call: 2]
 
       unquote(plug_stacks)
     end

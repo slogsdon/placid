@@ -91,7 +91,7 @@ defmodule Handlers.V2.Pages do
     result = case Integer.parse args["page_id"] do
         :error -> 
           %Error{ id: "no_page_id",
-                  message: "A valid page_id is requried." }
+                  message: "A valid page_id is required." }
         {i, _} ->
           Queries.Page.get i
       end
@@ -159,40 +159,40 @@ end
 
 ## TODO
 
-- [ ] Compatibility with web frameworks via umbrella projects.
-  - [ ] Would be nice to offer tight integration when available, e.g. `Phoenix.Topic` notifications
 - [ ] Respects HTTP specifications ([7230](http://tools.ietf.org/pdf/rfc7230.pdf), 
-  [7231](http://tools.ietf.org/pdf/rfc7231.pdf),
-  [7232](http://tools.ietf.org/pdf/rfc7232.pdf), 
-  [7233](http://tools.ietf.org/pdf/rfc7233.pdf), 
-  [7234](http://tools.ietf.org/pdf/rfc7234.pdf), 
-  [7235](http://tools.ietf.org/pdf/rfc7235.pdf))
+    [7231](http://tools.ietf.org/pdf/rfc7231.pdf),
+    [7232](http://tools.ietf.org/pdf/rfc7232.pdf), 
+    [7233](http://tools.ietf.org/pdf/rfc7233.pdf), 
+    [7234](http://tools.ietf.org/pdf/rfc7234.pdf), 
+    [7235](http://tools.ietf.org/pdf/rfc7235.pdf))
+- [ ] Compatibility with web frameworks via umbrella projects.
+    - [ ] Would be nice to offer tight integration when available, e.g. `Phoenix.Topic` notifications
 - [ ] Foundations
-  - [ ] Prefer TLS. Require clients to use TLS when enabled in server
-  - [ ] Version with `Accepts` header. Fallback to URL versioning
-  - [ ] Support caching with `Etags`
-  - [ ] Trace requests with Request-Ids
-  - [ ] Paginate with ranges. Mostly lies on end-developer, but we should provide facility to easily set headers
+    - [ ] Prefer TLS. Require clients to use TLS when enabled in server
+    - [ ] Version with `Accepts` header. Fallback to URL versioning
+    - [ ] Support caching with `Etags`
+    - [ ] Trace requests with Request-Ids
+    - [ ] Paginate with ranges. Mostly lies on end-developer, but we should provide facility to easily set headers
 - [ ] Requests
-  - [ ] Return appropriate status codes. Mostly lies on end-developer, but we should return them when appropriate
-  - [ ] Provide full resources where available
-  - [X] Accept serialized JSON/XML in request bodies
-  - [ ] Downcase paths and attributes
-  - [X] Support non-id dereferencing for convenience. No type checking occurs on parameters
-  - [ ] Minimize path nesting. Mostly lies on end-developer, but we should ensure generated route paths are as simple as posisble
+    - [ ] Return appropriate status codes. Mostly lies on end-developer, but we should return them when appropriate
+    - [ ] Provide full resources where available
+    - [X] Accept serialized JSON/XML in request bodies
+    - [ ] Downcase paths and attributes
+    - [X] Support non-id dereferencing for convenience. No type checking occurs on parameters
+    - [ ] Minimize path nesting. Mostly lies on end-developer, but we should ensure generated route paths are as simple as posisble
 - [ ] Responses
-  - [ ] Provide resource (UU)IDs
-  - [ ] Provide standard timestamps
-  - [ ] Use UTC times formatted in ISO8601
-  - [ ] Nest foreign key relations
-  - [ ] Generate structured errors
-  - [ ] Show rate limit status
-  - [ ] Keep JSON minified in all responses
+    - [ ] Provide resource (UU)IDs
+    - [ ] Provide standard timestamps
+    - [ ] Use UTC times formatted in ISO8601
+    - [ ] Nest foreign key relations
+    - [ ] Generate structured errors
+    - [ ] Show rate limit status
+    - [ ] Keep JSON minified in all responses
 - [ ] Artifacts
-  - [ ] Provide machine-readable JSON schema
-  - [ ] Provide human-readable docs
-  - [ ] Provide executable examples
-  - [ ] Describe stability
+    - [ ] Provide machine-readable JSON schema
+    - [ ] Provide human-readable docs
+    - [ ] Provide executable examples
+    - [ ] Describe stability
   
 This list comes primarily from the [HTTP API Design Guide](https://github.com/interagent/http-api-design) by [**@interagent**](https://github.com/interagent) and [friends](https://github.com/interagent/http-api-design/graphs/contributors) but will be updated to fit the needs of the project.
 

@@ -105,7 +105,7 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec render(map, enumerable, [{atom, any}]) :: map
+  @spec render(map, enumerable, Keyword.t) :: map
   def render(conn, data, opts \\ []) do
     opts = [ status: 200 ] |> Keyword.merge opts
     %StatusCode{code: code} = opts[:status] |> StatusCodes.find
@@ -126,7 +126,7 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec halt!(map, [{atom, any}]) :: map
+  @spec halt!(map, Keyword.t) :: map
   def halt!(conn, opts \\ []) do
     opts = [ status: 401] |> Keyword.merge opts
     %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCodes.find
@@ -165,7 +165,7 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec forward(map, atom, atom, [{atom, any}]) :: map
+  @spec forward(map, atom, atom, Keyword.t) :: map
   def forward(conn, handler, action, args \\ []) do
     handler.call conn, [ action: action, args: args ++ conn.params ]
   end
@@ -183,7 +183,7 @@ defmodule Placid.Response.Helpers do
 
   `Plug.Conn`
   """
-  @spec redirect(map, binary, [{atom, any}]) :: map
+  @spec redirect(map, binary, Keyword.t) :: map
   def redirect(conn, location, opts \\ []) do
     opts = [ status: 302 ] |> Keyword.merge opts
     %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCodes.find   

@@ -29,15 +29,13 @@ defmodule Placid.Router do
       end
   """
 
-  @type ast :: tuple
+  @typep ast :: tuple
 
   @http_methods [ :get, :post, :put, :patch, :delete, :any ]
 
   ## Macros
 
-  @doc """
-  Macro used to add necessary items to a router.
-  """
+  @doc false
   defmacro __using__(_) do
     quote do
       import Placid.Response.Helpers
@@ -75,6 +73,8 @@ defmodule Placid.Router do
       def call(conn, opts) do
         do_call(conn, opts)
       end
+
+      defoverridable [init: 1, call: 2]
 
       def match(conn, _opts) do
         plug_route = __MODULE__.do_match(conn.method, conn.path_info)
@@ -161,7 +161,7 @@ defmodule Placid.Router do
       options, "/users",      "HEAD,GET,POST"
       options, "/users/:_id", "HEAD,GET,PUT,PATCH,DELETE"
   """
-  @spec resource(atom, atom, [{atom, any}]) :: [ast]
+  @spec resource(atom, atom, Keyword.t) :: [ast]
   defmacro resource(resource, handler, opts \\ []) do
     arg     = Keyword.get opts, :arg, :id
     allowed = Keyword.get opts, :only, [ :index, :create, :show,
