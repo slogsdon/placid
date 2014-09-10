@@ -4,6 +4,11 @@ defmodule Placid.Request.Parsers.XML do
 
   @types [ "application", "text" ]
 
+  @type conn    :: map
+  @type headers :: map
+  @type opts    :: Keyword.t
+
+  @spec parse(conn, binary, binary, headers, opts) :: {:ok | :error, map | atom, conn}
   def parse(%Conn{} = conn, type, "xml", _headers, opts) when type in @types do
     case Conn.read_body(conn, opts) do
       { :ok, body, conn } ->

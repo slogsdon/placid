@@ -2,6 +2,11 @@ defmodule Placid.Request.Parsers.JSON do
   @moduledoc false
   alias Plug.Conn
 
+  @type conn    :: map
+  @type headers :: map
+  @type opts    :: Keyword
+
+  @spec parse(conn, binary, binary, headers, opts) :: {:ok | :error, map | atom, conn}
   def parse(%Conn{} = conn, "application", "json", _headers, opts) do
     case Conn.read_body(conn, opts) do
       { :ok, body, conn } ->

@@ -25,7 +25,8 @@ defmodule Placid.Mixfile do
       { :poison, "~> 1.1.0" },
       { :earmark, "~> 0.1.10", only: :docs },
       { :ex_doc, "~> 0.6.0", only: :docs },
-      { :excoveralls, "~> 0.3", only: :dev } ]
+      { :excoveralls, "~> 0.3", only: :dev },
+      { :dialyze, "~> 0.1.2", only: :dev } ]
   end
 
   defp description do

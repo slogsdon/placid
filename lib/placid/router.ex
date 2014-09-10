@@ -29,6 +29,8 @@ defmodule Placid.Router do
       end
   """
 
+  @type ast :: tuple
+
   @http_methods [ :get, :post, :put, :patch, :delete, :any ]
 
   ## Macros
@@ -105,6 +107,7 @@ defmodule Placid.Router do
     * `handler` - `Atom`
     * `action` - `Atom`
     """
+    @spec unquote(verb)(binary | list, atom, atom) :: ast
     defmacro unquote(verb)(route, handler, action) do
       build_match unquote(verb), route, handler, action, __CALLER__
     end
@@ -116,9 +119,9 @@ defmodule Placid.Router do
   ## Arguments
 
   * `route` - `String|List`
-  * `handler` - `Atom`
-  * `action` - `Atom`
+  * `allows` - `String`
   """
+  @spec options(binary | list, binary) :: ast
   defmacro options(route, allows) do
     build_match :options, route, allows, __CALLER__
   end
@@ -133,6 +136,7 @@ defmodule Placid.Router do
   * `handler` - `Atom`
   * `action` - `Atom`
   """
+  @spec raw(atom, binary | list, atom, atom) :: ast
   defmacro raw(method, route, handler, action) do
     build_match method, route, handler, action, __CALLER__
   end
@@ -157,6 +161,7 @@ defmodule Placid.Router do
       options, "/users",      "HEAD,GET,POST"
       options, "/users/:_id", "HEAD,GET,PUT,PATCH,DELETE"
   """
+  @spec resource(atom, atom, [{atom, any}]) :: [ast]
   defmacro resource(resource, handler, opts \\ []) do
     arg     = Keyword.get opts, :arg, :id
     allowed = Keyword.get opts, :only, [ :index, :create, :show,

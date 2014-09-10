@@ -1,5 +1,6 @@
 %{"cowboy": {:package, "1.0.0"},
   "cowlib": {:package, "1.0.0"},
+  "dialyze": {:package, "0.1.2"},
   "earmark": {:package, "0.1.10"},
   "ex_doc": {:package, "0.6.0"},
   "excoveralls": {:package, "0.3.2"},

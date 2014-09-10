@@ -48,7 +48,7 @@ defmodule Placid.Handler do
   defp build_plug_stacks(plugs) do
     only_actions = get_only_actions plugs
 
-    for action <- only_actions ++ [nil] do
+    Enum.map only_actions ++ [nil], fn action ->
       build_plug_stacks_for action, plugs
     end
   end

@@ -4,6 +4,7 @@ defmodule Placid.Response.StatusCodes do
   @doc """
   Translates a given integer or atom into a status code.
   """
+  @spec find(any) :: Placid.Response.StatusCode.t
   def find(100), do: continue
   def find(:continue), do: continue
   def find(101), do: switching_protocols
