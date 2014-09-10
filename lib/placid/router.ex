@@ -157,9 +157,9 @@ defmodule Placid.Router do
       options, "/users/:_id", "HEAD,GET,PUT,PATCH,DELETE"
   """
   defmacro resource(resource, handler, opts \\ []) do
-    arg     = Keyword.get(opts, :arg, :id)
-    allowed = Keyword.get(opts, :only, [ :index, :create, :show,
-                                         :update, :patch, :delete ])
+    arg     = Keyword.get opts, :arg, :id
+    allowed = Keyword.get opts, :only, [ :index, :create, :show,
+                                         :update, :patch, :delete ]
     routes  = 
       [ { :get,     "/#{resource}",          :index },
         { :post,    "/#{resource}",          :create },
@@ -186,17 +186,6 @@ defmodule Placid.Router do
     end
   end
 
-  defp filter(list, allowed) do
-    Enum.filter list, &do_filter(&1, allowed)
-  end
-
-  defp do_filter({ _, _, action }, allowed) do
-    action in allowed
-  end
-  defp do_filter({ action, _ }, allowed) do
-    action in allowed
-  end
-
   # Builds a `do_match/2` function body for a given route.
   defp build_match(:options, route, allows, caller) do
     body = quote do
@@ -217,19 +206,9 @@ defmodule Placid.Router do
     do_build_match method, route, body, caller
   end
 
-  defp do_build_match(:any, route, body, caller) do
-    { _method, guards, _vars, match }  = prep_match :any, route, caller
-
-    quote do
-      def do_match(_, unquote(match)) when unquote(guards) do
-        fn conn ->
-          unquote(body)
-        end
-      end
-    end
-  end
-  defp do_build_match(method, route, body, caller) do
-    { method, guards, _vars, match }  = prep_match method, route, caller
+  defp do_build_match(verb, route, body, caller) do
+    { method, guards, _vars, match }  = prep_match verb, route, caller
+    method = if verb == :any, do: quote(do: _), else: method
 
     quote do
       def do_match(unquote(method), unquote(match)) when unquote(guards) do
@@ -240,6 +219,19 @@ defmodule Placid.Router do
     end
   end
 
+  defp filter(list, allowed) do
+    Enum.filter list, &do_filter(&1, allowed)
+  end
+
+  defp do_filter({ _, _, action }, allowed) do
+    action in allowed
+  end
+  defp do_filter({ action, _ }, allowed) do
+    action in allowed
+  end
+
+  ## Grabbed from `Plug.Router`
+
   defp prep_match(method, route, caller) do
     { method, guard } = convert_methods(List.wrap(method))
     { path, guards }  = extract_path_and_guards(route, guard)
@@ -249,14 +241,11 @@ defmodule Placid.Router do
     { method, guards, vars, match }
   end
 
-  ## Grabbed from `Plug.Router`
-
   # Convert the verbs given with :via into a variable
   # and guard set that can be added to the dispatch clause.
   defp convert_methods([]) do
     { quote(do: _), true }
   end
-
   defp convert_methods([method]) do
     { Plug.Router.Utils.normalize_method(method), true }
   end
@@ -265,11 +254,9 @@ defmodule Placid.Router do
   defp extract_path_and_guards({ :when, _, [ path, guards ] }, true) do
     { path, guards }
   end
-
   defp extract_path_and_guards({ :when, _, [ path, guards ] }, extra_guard) do
     { path, { :and, [], [ guards, extra_guard ] } }
   end
-
   defp extract_path_and_guards(path, extra_guard) do
     { path, extra_guard }
   end
