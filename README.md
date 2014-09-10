@@ -67,7 +67,7 @@ end
 
 `version/2` will need to be created outright. Will allow requests to contained endpoints when version exists in either `Accepts` header or URL (which ever is defined in app config).
 
-Extra routes will need to be added for `*.json`, `*.xml`, etc. requests for optionally specifying desired content type without the use of the `Accepts` header.
+Extra routes will need to be added for `*.json`, `*.xml`, etc. requests for optionally specifying desired content type without the use of the `Accepts` header. These should match parsing/rendering abailities of Placid.
 
 ## Handlers
 
@@ -138,6 +138,25 @@ Current Parsers:
 
 Render layer serializes/encodes data based on the requested content type unless overridden for whatever reason in the response stack.
 
+Rendering engine behavior:
+
+```elixir
+defmodule Placid.Response.Rendering.Engine do
+  use Behaviour
+
+  @type data :: any
+
+  @callback serialize(data) :: binary
+  defcallback serialize(data)
+end
+
+defmodule Placid.Response.Rendering.JSON do
+  @behaviour Placid.Response.Rendering.Engine
+
+  def serialize(data), do: Poison.encode!(data, string: true)
+end
+```
+
 ## TODO
 
 - [ ] Compatibility with web frameworks via umbrella projects.
@@ -176,7 +195,7 @@ Render layer serializes/encodes data based on the requested content type unless 
   - [ ] Provide executable examples ([link](https://github.com/interagent/http-api-design#provide-executable-examples))
   - [ ] Describe stability ([link](https://github.com/interagent/http-api-design#describe-stability))
   
-This list comes primarily from the [HTTP API Design Guide](https://github.com/interagent/http-api-design) by [**@interagent**](/interagent) and [friends](https://github.com/interagent/http-api-design/graphs/contributors) but will be updated to fit the needs of the project.
+This list comes primarily from the [HTTP API Design Guide](https://github.com/interagent/http-api-design) by [**@interagent**](https://github.com/interagent) and [friends](https://github.com/interagent/http-api-design/graphs/contributors) but will be updated to fit the needs of the project.
 
 ## License
 
