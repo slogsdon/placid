@@ -30,6 +30,7 @@ defmodule Placid.Response.Helpers do
   """
 
   import Plug.Conn
+  alias Placid.Response.StatusCode
   alias Placid.Response.StatusCodes
 
   @type status_code :: atom | 100..999
@@ -50,8 +51,8 @@ defmodule Placid.Response.Helpers do
   @spec status(map, status_code) :: map
   def status(conn, status_code) when is_integer(status_code)
                                 when is_atom(status_code) do
-    status = status_code |> StatusCodes.find
-    %Plug.Conn{ conn | status: status[:code], 
+    %StatusCode{code: code} = status_code |> StatusCodes.find
+    %Plug.Conn{ conn | status: code, 
                        state: :set }
   end
 
@@ -107,10 +108,10 @@ defmodule Placid.Response.Helpers do
   @spec render(map, enumerable, [{atom, any}]) :: map
   def render(conn, data, opts \\ []) do
     opts = [ status: 200 ] |> Keyword.merge opts
-    status = StatusCodes.find opts[:status]
+    %StatusCode{code: code} = opts[:status] |> StatusCodes.find
     conn
       |> put_resp_content_type_if_not_sent(opts[:content_type] || "text/html")
-      |> send_resp_if_not_sent(status[:code], data)
+      |> send_resp_if_not_sent(code, data)
   end
 
   @doc """
@@ -128,9 +129,9 @@ defmodule Placid.Response.Helpers do
   @spec halt!(map, [{atom, any}]) :: map
   def halt!(conn, opts \\ []) do
     opts = [ status: 401] |> Keyword.merge opts
-    status = StatusCodes.find opts[:status]
+    %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCodes.find
     conn
-      |> send_resp_if_not_sent(status[:code], status[:reason])
+      |> send_resp_if_not_sent(code, reason)
   end
 
   @doc """
@@ -185,10 +186,10 @@ defmodule Placid.Response.Helpers do
   @spec redirect(map, binary, [{atom, any}]) :: map
   def redirect(conn, location, opts \\ []) do
     opts = [ status: 302 ] |> Keyword.merge opts
-    status = StatusCodes.find opts[:status]    
+    %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCodes.find   
     conn
       |> put_resp_header_if_not_sent("Location", location)
-      |> send_resp_if_not_sent(status[:code], status[:reason])
+      |> send_resp_if_not_sent(code, reason)
   end
 
   defp put_resp_header_if_not_sent(%Plug.Conn{ state: :sent } = conn, _, _) do
