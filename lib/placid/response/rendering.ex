@@ -8,6 +8,15 @@ defmodule Placid.Response.Rendering do
     defexception [ :message ]
   end
 
+  defmodule Engine do
+    @moduledoc false
+    use Behaviour
+
+    @type data :: Map | List
+
+    defcallback serialize(data, binary, binary) :: { :ok, binary } | :next
+  end
+
   @moduledoc """
   Rendering
 
