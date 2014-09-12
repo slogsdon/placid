@@ -59,6 +59,7 @@ defmodule Placid.Router do
     # user-defined plugs
     defaults = [ { Plug.Head, [] },
                  { Plug.MethodOverride, [] },  
+                 { :copy_req_content_type, [] }, 
                  { :match, [] },
                  { :dispatch, [] } ]
     { conn, body } = Enum.reverse(defaults) ++ 
@@ -75,6 +76,15 @@ defmodule Placid.Router do
       end
 
       defoverridable [init: 1, call: 2]
+
+      def copy_req_content_type(conn, _opts) do
+        default = Application.get_env(:placid, :default_content_type, "application/json; charset=utf-8")
+        content_type = case Plug.Conn.get_req_header conn, "content-type" do
+            [content_type] -> content_type
+            _ -> default
+          end
+        conn |> Plug.Conn.put_resp_header("content-type", content_type)
+      end
 
       def match(conn, _opts) do
         plug_route = __MODULE__.do_match(conn.method, conn.path_info)

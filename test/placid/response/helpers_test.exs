@@ -32,22 +32,33 @@ defmodule Placid.Response.HelpersTest do
     assert conn.state === :sent
   end
 
-  test "render/3 without  opts" do
-    conn = conn(:get, "/")
+  test "render/3 without opts and fallback to default content-type" do
+    conn = conn(:get, "/", nil)
       |> Map.put(:state, :set)
       |> render([])
 
     assert conn.state === :sent
-    assert get_resp_header(conn, "content-type") === ["text/html; charset=utf-8"]
+    assert get_resp_header(conn, "content-type") === ["application/json; charset=utf-8"]
+  end
+
+  test "render/3 without opts" do
+    headers = [{"content-type", "text/json"}]
+    conn = conn(:get, "/", nil, headers: headers)
+      |> Map.put(:state, :set)
+      |> render([])
+
+    assert conn.state === :sent
+    assert get_resp_header(conn, "content-type") === ["text/json; charset=utf-8"]
   end
 
   test "render/3 with opts" do
-    conn = conn(:get, "/")
+    headers = [{"content-type", "text/json"}]
+    conn = conn(:get, "/", nil, headers: headers)
       |> Map.put(:state, :set)
-      |> render([], [content_type: "text/html"])
+      |> render([], [content_type: "application/json"])
 
     assert conn.state === :sent
-    assert get_resp_header(conn, "content-type") === ["text/html; charset=utf-8"]
+    assert get_resp_header(conn, "content-type") === ["application/json; charset=utf-8"]
   end
 
   test "halt!/2 without opts" do
@@ -114,7 +125,8 @@ defmodule Placid.Response.HelpersTest do
   end
 
   test "resp already sent on set content-type" do
-    conn = conn(:get, "/")
+    headers = [{"content-type", "text/json"}]
+    conn = conn(:get, "/", nil, headers: headers)
       |> Map.put(:state, :sent)
       |> render([])
 

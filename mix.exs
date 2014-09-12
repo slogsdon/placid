@@ -4,7 +4,7 @@ defmodule Placid.Mixfile do
   def project do
     [ app: :placid,
       version: "0.0.1",
-      elixir: "~> 1.0.0-rc1 or ~> 1.0.0",
+      elixir: ">= 1.0.0-rc1",
       deps: deps,
       name: "Placid",
       package: package,
@@ -23,10 +23,11 @@ defmodule Placid.Mixfile do
       { :plug, "~> 0.7.0" },
       { :linguist, "~> 0.1.2" },
       { :poison, "~> 1.1.0" },
+      { :xml_builder, "~> 0.0.5" },
       { :earmark, "~> 0.1.10", only: :docs },
       { :ex_doc, "~> 0.6.0", only: :docs },
-      { :excoveralls, "~> 0.3", only: :dev },
-      { :dialyze, "~> 0.1.2", only: :dev } ]
+      { :excoveralls, "~> 0.3.3", only: :test },
+      { :dialyze, "~> 0.1.2", only: :test } ]
   end
 
   defp description do

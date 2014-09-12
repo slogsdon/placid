@@ -145,16 +145,20 @@ Rendering engine behavior:
 defmodule Placid.Response.Rendering.Engine do
   use Behaviour
 
-  @type data :: any
+  @type data :: Keyword | Map | List
 
-  @callback serialize(data) :: binary
-  defcallback serialize(data)
+  defcallback serialize(data, type, subtype) :: { :ok, binary } | :next
 end
 
 defmodule Placid.Response.Rendering.JSON do
   @behaviour Placid.Response.Rendering.Engine
 
-  def serialize(data), do: Poison.encode!(data, string: true)
+  @types ["application", "text"]
+
+  def serialize(data, type, "json") when type in @types do
+    { :ok, data |> Poison.encode!(string: true) }
+  end
+  def serialize(_, _, _), do: :next
 end
 ```
 

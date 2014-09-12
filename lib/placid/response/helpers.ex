@@ -30,10 +30,11 @@ defmodule Placid.Response.Helpers do
   """
 
   import Plug.Conn
+  alias Placid.Response.Rendering
   alias Placid.Response.StatusCode
 
   @type status_code :: atom | 100..999
-  @type enumerable  :: Keyword | Map | List
+  @type enumerable  :: Map | List
 
   @doc """
   sets connection status
@@ -50,7 +51,7 @@ defmodule Placid.Response.Helpers do
   @spec status(Plug.Conn.t, status_code) :: Plug.Conn.t
   def status(conn, status_code) when is_integer(status_code)
                                 when is_atom(status_code) do
-    %StatusCode{code: code} = status_code |> StatusCode.find
+    %StatusCode{ code: code } = status_code |> StatusCode.find
     %Plug.Conn{ conn | status: code, 
                        state: :set }
   end
@@ -106,11 +107,19 @@ defmodule Placid.Response.Helpers do
   """
   @spec render(Plug.Conn.t, enumerable, Keyword.t) :: Plug.Conn.t
   def render(conn, data, opts \\ []) do
-    opts = [ status: 200 ] |> Keyword.merge opts
-    %StatusCode{code: code} = opts[:status] |> StatusCode.find
+    req_ct = case Plug.Conn.get_req_header(conn, "content-type") do
+      [ct] -> ct
+      _ -> Application.get_env(:placid, :default_content_type, "application/json")
+    end
+    content_type = Keyword.get(opts, :content_type, req_ct)
+    %StatusCode{ code: code } = Keyword.get(opts, :status, :ok)
+                                |> StatusCode.find
+    conn = Rendering.serialize_to_body(conn, data, content_type)
+
     conn
-      |> put_resp_content_type_if_not_sent(opts[:content_type] || "text/html")
-      |> send_resp_if_not_sent(code, data)
+      |> put_resp_content_type_if_not_sent(content_type)
+      |> put_status(code)
+      |> send_resp_if_not_sent
   end
 
   @doc """
@@ -128,7 +137,7 @@ defmodule Placid.Response.Helpers do
   @spec halt!(Plug.Conn.t, Keyword.t) :: Plug.Conn.t
   def halt!(conn, opts \\ []) do
     opts = [ status: 401] |> Keyword.merge opts
-    %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCode.find
+    %StatusCode{ code: code, reason: reason } = opts[:status] |> StatusCode.find
     conn
       |> send_resp_if_not_sent(code, reason)
   end
@@ -191,6 +200,8 @@ defmodule Placid.Response.Helpers do
       |> send_resp_if_not_sent(code, reason)
   end
 
+  defp put_status(conn, status), do: %Plug.Conn{ conn | status: status }
+
   defp put_resp_header_if_not_sent(%Plug.Conn{ state: :sent } = conn, _, _) do
     conn
   end
@@ -205,6 +216,12 @@ defmodule Placid.Response.Helpers do
     conn |> put_resp_content_type(resp_content_type)
   end
 
+  defp send_resp_if_not_sent(%Plug.Conn{ state: :sent } = conn) do
+    conn
+  end
+  defp send_resp_if_not_sent(%Plug.Conn{} = conn) do
+    conn |> send_resp
+  end
   defp send_resp_if_not_sent(%Plug.Conn{ state: :sent } = conn, _, _) do
     conn
   end
