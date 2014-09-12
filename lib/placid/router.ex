@@ -7,25 +7,74 @@ defmodule Placid.Router do
 
       method route [guard], handler, action
 
-  `method` is `get`, `post`, `put`, `patch`, `delete`, or `options`,
-  each responsible for a single HTTP method. `method` can also be
-  `any`, which will match on all HTTP methods. `handler` is any
-  valid Elixir module name, and `action` is any valid function
-  defined in the `handler` module.
+  `method` is `get`, `post`, `put`, `patch`, or `delete`, each 
+  responsible for a single HTTP method. `method` can also be `any`, which will 
+  match on all HTTP methods. `options` is yet another option for `method`, but
+  when using `options`, only a route path and the methods that route path
+  supports are needed. `handler` is any valid Elixir module name, and 
+  `action` is any valid public function defined in the `handler` module.
+
+  `get/3`, `post/3`, `put/3`, `patch/3`, `delete/3`, `options/2`, and `any/3` 
+  are already built-in as described. `resource/2` exists but will need 
+  modifications to create everything as noted.
+
+  `raw/4` allows for using custom HTTP methods, allowing your application to be 
+  HTTP spec compliant.
+
+  `version/2` allows requests to contained endpoints when version exists in 
+  either `Accepts` header or URL (which ever is defined in the app config).
+
+  Extra routes will be added for `*.json`, `*.xml`, etc. requests for optionally 
+  specifying desired content type without the use of the `Accepts` header. These 
+  match parsing/rendering abilities of Placid.
 
   ## Example
 
       defmodule Router do
         use Placid.Router
 
-        plug Plugs.HotCodeReload
-        plug Filters.SetHeaders
+        # Define one of the versions of the API
+        # with a simple version number "1"
+        # or following semver "1.0.0"
+        # or date of release "2014-09-06"
+        version "1" do 
+          # Define your routes here
+          get  "/",               Handlers.V1.Pages, :index
+          get  "/pages",          Handlers.V1.Pages, :create
+          post "/pages",          Handlers.V1.Pages, :create
+          put  "/pages/:page_id" when id == 1,
+                                  Handlers.V1.Pages, :update_only_one
+          get  "/pages/:page_id", Handlers.V1.Pages, :show
+          
+          # Auto-create a full set of routes for resources
+          #
+          resource :users,        Handlers.V1.User, arg: :user_id
+          #
+          # Generates:
+          #
+          # get     "/users",           Handlers.V1.User, :index
+          # post    "/users",           Handlers.V1.User, :create
+          # get     "/users/:user_id",  Handlers.V1.User, :show
+          # put     "/users/:user_id",  Handlers.V1.User, :update
+          # patch   "/users/:user_id",  Handlers.V1.User, :patch
+          # delete  "/users/:user_id",  Handlers.V1.User, :delete
+          #
+          # options "/users",           "HEAD,GET,POST"
+          # options "/users/:_user_id", "HEAD,GET,PUT,PATCH,DELETE"
+        end
 
-        # Define your routes here
-        get "/", Hello, :index
-        get "/pages/:id", Hello, :show
-        post "/pages", Hello, :create
-        put "/pages/:id" when id == 1, Hello, :update_only_one
+        # An updated version of the AP
+        version "2" do 
+          get  "/",               Handlers.V2.Pages,  :index
+          post "/pages",          Handlers.V2.Pages,  :create
+          get  "/pages/:page_id", Handlers.V2.Pages,  :show
+          put  "/pages/:page_id", Handlers.V2.Pages,  :update
+
+          raw :trace, "/trace",   Handlers.V2.Tracer, :trace
+          
+          resource :users,        Handlers.V2.User
+          resource :groups,       Handlers.V2.Group
+        end
       end
   """
 

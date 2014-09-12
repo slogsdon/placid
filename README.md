@@ -67,7 +67,7 @@ end
 
 `version/2` will need to be created outright. Will allow requests to contained endpoints when version exists in either `Accepts` header or URL (which ever is defined in app config).
 
-Extra routes will need to be added for `*.json`, `*.xml`, etc. requests for optionally specifying desired content type without the use of the `Accepts` header. These should match parsing/rendering abailities of Placid.
+Extra routes will need to be added for `*.json`, `*.xml`, etc. requests for optionally specifying desired content type without the use of the `Accepts` header. These should match parsing/rendering abilities of Placid.
 
 ## Handlers
 

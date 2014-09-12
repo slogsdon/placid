@@ -1,9 +1,14 @@
 defmodule Placid.Handler do
   @moduledoc """
-  All handler actions should have an arrity of 2, with the
-  first argument being a `Plug.Conn` representing the current
-  connection and the second argument being a `Keyword` list
-  of any parameters captured in the route path.
+  Handlers facilitate some separation of concerns for your application's logic.
+
+  All handler actions should have an arrity of 2, with the first argument being 
+  a `Plug.Conn` representing the current connection and the second argument 
+  being a `Keyword` list of any parameters captured in the route path.
+
+  `Placid.Handler` imports `Plug.Conn`, the `plug/1` and `plug/2` macros from
+  `Plug.Builder`, `Placid.Handler`, and `Placid.Response.Helpers` for 
+  convenience when creating handlers for your applications
 
   ## Example
 
