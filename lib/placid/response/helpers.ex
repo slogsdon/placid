@@ -1,14 +1,7 @@
 defmodule Placid.Response.Helpers do
   @moduledoc """
   Placid bundles these response helpers with handlers to 
-  assist in sending a response:
-
-  * `render/4` - `conn`, `data`, `opts` - sends a normal response.
-  * `halt!/2` - `conn`, `opts` - ends the response.
-  * `not_found/1` - `conn`, `message` - sends a 404 (Not found) response.
-  * `raw/1` - `conn` - sends response as-is. It is expected
-    that status codes, headers, body, etc have been set by
-    the handler action.
+  assist in sending a response.
 
   #### Example
 
@@ -20,11 +13,13 @@ defmodule Placid.Response.Helpers do
         end
 
         def show(conn, args) do
-          render conn, "showing page \#{args[:id]}"
+          forward conn, OtherHandler, :show, args
         end
 
         def create(conn, []) do
           render conn, "page created"
+            |> status(201)
+            |> send_resp
         end
       end
   """

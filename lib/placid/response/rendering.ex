@@ -12,19 +12,39 @@ defmodule Placid.Response.Rendering do
     @moduledoc false
     use Behaviour
 
-    @type data :: Map | List
+    @type data    :: Keyword | Map | List
+    @type type    :: binary
+    @type subtype :: binary
 
-    defcallback serialize(data, binary, binary) :: { :ok, binary } | :next
+    defcallback serialize(data, type, subtype) :: { :ok, binary } | :next
   end
 
   @moduledoc """
-  Rendering
+  `Placid.Response.Rendering` provides the ability for a response to be 
+  automatically serialized based on its content-type.
 
   ## Engines
 
-  behaviour
+  Rendering engines translate Elixir terms into a serialized format. Each engine
+  is responsible for a single type of content and is capable of rendering for 
+  multiple mime types.
 
-  implementations
+  Rendering engines should implement callbacks for the following behaviour:
+
+      defmodule Placid.Response.Rendering.Engine do
+        use Behaviour
+
+        @type data    :: Keyword | Map | List
+        @type type    :: binary
+        @type subtype :: binary
+
+        defcallback serialize(data, type, subtype) :: { :ok, binary } | :next
+      end
+
+  Current, built-in implementations include:
+
+  * `Placid.Response.Rendering.Engines.JSON`
+  * `Placid.Response.Rendering.Engines.XML`
   """
 
   alias Placid.Response.Rendering.Engines
@@ -33,6 +53,20 @@ defmodule Placid.Response.Rendering do
   @engines [ Engines.JSON,
              Engines.XML ]
 
+  @doc """
+  Serializes `data` when an available rendering engine exists for the given
+  `content_type`.
+
+  ## Arguments
+
+  * `conn` - `Plug.Conn` - the current connection
+  * `data` - `List` | `Map` | `Struct` - Elixir terms to be serialized
+  * `content_type` - `String` - response content-type
+
+  ## Returns
+
+  `Plug.Conn`
+  """
   def serialize_to_body(%Plug.Conn{ state: state } = conn, data, content_type) when state in @unsent do
     engines = Application.get_env(:placid, :rendering_engines, @engines)
     case Plug.Conn.Utils.content_type content_type do
@@ -40,7 +74,7 @@ defmodule Placid.Response.Rendering do
         body = reduce engines, data, type, subtype
         %Plug.Conn{ conn | resp_body: body, state: :set }
       :error -> 
-    raise UnsupportedResponseTypeError, message: "unsupported media type #{content_type}"
+        raise UnsupportedResponseTypeError, message: "unsupported media type #{content_type}"
     end
   end
   def serialize_to_body(conn, _data, _ct), do: conn
