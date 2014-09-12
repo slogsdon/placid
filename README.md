@@ -103,7 +103,7 @@ defmodule Handlers.V2.Pages do
   Create a new page
   """
   def create(conn, args) do
-    render conn, Queries.Page.create args, status: :created
+    render conn, Queries.Page.create(args), status: :created
   end
 
   @doc """
