@@ -79,7 +79,6 @@ defmodule Placid.Router do
   """
 
   @typep ast :: tuple
-
   @http_methods [ :get, :post, :put, :patch, :delete, :any ]
 
   ## Macros
@@ -93,6 +92,7 @@ defmodule Placid.Router do
       @before_compile Placid.Router
       @behaviour Plug
       Module.register_attribute(__MODULE__, :plugs, accumulate: true)
+      Module.register_attribute(__MODULE__, :version, accumulate: false)
 
       # Plugs we want early in the stack
       plug Plug.Parsers, parsers: [ Placid.Request.Parsers.JSON, 
@@ -225,17 +225,21 @@ defmodule Placid.Router do
     arg     = Keyword.get opts, :arg, :id
     allowed = Keyword.get opts, :only, [ :index, :create, :show,
                                          :update, :patch, :delete ]
+    # mainly used by `version/2`                                         
+    prepend_path = Keyword.get opts, :prepend_path, nil
+    if prepend_path, do: prepend_path = "/" <> prepend_path <> "/"
+
     routes  = 
-      [ { :get,     "/#{resource}",          :index },
-        { :post,    "/#{resource}",          :create },
-        { :get,     "/#{resource}/:#{arg}",  :show },
-        { :put,     "/#{resource}/:#{arg}",  :update },
-        { :patch,   "/#{resource}/:#{arg}",  :patch },
-        { :delete,  "/#{resource}/:#{arg}",  :delete } ]
+      [ { :get,     "#{prepend_path}#{resource}",          :index },
+        { :post,    "#{prepend_path}#{resource}",          :create },
+        { :get,     "#{prepend_path}#{resource}/:#{arg}",  :show },
+        { :put,     "#{prepend_path}#{resource}/:#{arg}",  :update },
+        { :patch,   "#{prepend_path}#{resource}/:#{arg}",  :patch },
+        { :delete,  "#{prepend_path}#{resource}/:#{arg}",  :delete } ]
 
     options_routes =
-      [ { "/#{resource}",          [ index: :get, create: :post ] },
-        { "/#{resource}/:_#{arg}", [ show: :get, update: :put,
+      [ { "/#{ignore_args prepend_path}#{resource}",          [ index: :get, create: :post ] },
+        { "/#{ignore_args prepend_path}#{resource}/:_#{arg}", [ show: :get, update: :put,
                                      patch: :patch, delete: :delete ] } ]
 
     for { method, path, action } <- routes |> filter(allowed) do
@@ -249,6 +253,59 @@ defmodule Placid.Router do
                 |> Enum.join(",")
       build_match :options, path, "HEAD,#{allows}", __CALLER__
     end
+  end
+
+  @doc """
+  Macro for defining a version for a set of routes.
+
+  ## Arguments
+
+  * `version` - `String`
+  """
+  @spec version(binary, any) :: ast | [ast]
+  defmacro version(version, do: body) do
+    body = update_body_with_version body, version
+    quote do
+      unquote(body)
+    end
+  end
+
+  defp ignore_args(str) do
+    str 
+      |> String.to_char_list 
+      |> do_ignore_args 
+      |> to_string
+  end
+
+  defp do_ignore_args([]), do: []
+  defp do_ignore_args([?:|t]), do: [?:,?_] ++ do_ignore_args(t)
+  defp do_ignore_args([h|t]), do: [h] ++ do_ignore_args(t)
+
+  defp update_body_with_version({ :__block__, [], calls }, version) do
+    { :__block__, [], calls |> Enum.map(&prepend_version(&1, "/" <> version)) }
+  end
+
+  defp prepend_version({ method, line, args }, version) do
+    new_args = case method do
+      :options ->
+        [path, allows] = args
+        [version <> path, allows]
+      :raw ->
+        [verb, path, handler, action] = args
+        [verb, version <> path, handler, action]
+      :resource ->
+        case args do
+          [resource, handler] ->
+            [resource, handler, [prepend_path: version]]
+          [resource, handler, opts] ->
+            opts = Keyword.update opts, :prepend_path, version, &("#{version}/#{&1}")
+            [resource, handler, opts]
+        end
+      _ ->
+        [path, handler, action] = args
+        [version <> path, handler, action]
+    end
+    { method, line, new_args }
   end
 
   # Builds a `do_match/2` function body for a given route.
@@ -272,7 +329,7 @@ defmodule Placid.Router do
   end
 
   defp do_build_match(verb, route, body, caller) do
-    { method, guards, _vars, match }  = prep_match verb, route, caller
+    { method, guards, _vars, match } = prep_match verb, route, caller
     method = if verb == :any, do: quote(do: _), else: method
 
     quote do

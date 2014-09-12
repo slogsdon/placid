@@ -4,7 +4,7 @@ defmodule Placid.RouterTest do
   use Placid.Router
 
   test "get/3" do
-    conn = conn(:get, "/get")
+    conn = conn(:get, "/1/get")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -12,7 +12,7 @@ defmodule Placid.RouterTest do
   end
 
   test "post/3" do
-    conn = conn(:post, "/post")
+    conn = conn(:post, "/1/post")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -20,7 +20,7 @@ defmodule Placid.RouterTest do
   end
 
   test "put/3" do
-    conn = conn(:put, "/put")
+    conn = conn(:put, "/1/put")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -28,7 +28,7 @@ defmodule Placid.RouterTest do
   end
 
   test "patch/3" do
-    conn = conn(:patch, "/patch")
+    conn = conn(:patch, "/1/patch")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -36,7 +36,7 @@ defmodule Placid.RouterTest do
   end
 
   test "delete/3" do
-    conn = conn(:delete, "/delete")
+    conn = conn(:delete, "/1/delete")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -44,7 +44,7 @@ defmodule Placid.RouterTest do
   end
 
   test "options/3" do
-    conn = conn(:options, "/options")
+    conn = conn(:options, "/1/options")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -52,7 +52,7 @@ defmodule Placid.RouterTest do
   end
 
   test "any/3 any" do
-    conn = conn(:any, "/any")
+    conn = conn(:any, "/1/any")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -60,7 +60,7 @@ defmodule Placid.RouterTest do
   end
 
   test "any/3 get" do
-    conn = conn(:get, "/any")
+    conn = conn(:get, "/1/any")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -68,7 +68,7 @@ defmodule Placid.RouterTest do
   end
 
   test "raw/4 trace" do
-    conn = conn(:trace, "/trace")
+    conn = conn(:trace, "/1/trace")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -80,7 +80,7 @@ defmodule Placid.RouterTest do
   end
 
   test "resource/2 index" do
-    conn = conn(:get, "/users")
+    conn = conn(:get, "/1/users")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -88,7 +88,7 @@ defmodule Placid.RouterTest do
   end
 
   test "resource/2 create" do
-    conn = conn(:post, "/users")
+    conn = conn(:post, "/1/users")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -96,7 +96,7 @@ defmodule Placid.RouterTest do
   end
 
   test "resource/2 show" do
-    conn = conn(:get, "/users/1")
+    conn = conn(:get, "/1/users/1")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -104,7 +104,7 @@ defmodule Placid.RouterTest do
   end
 
   test "resource/2 update" do
-    conn = conn(:put, "/users/1")
+    conn = conn(:put, "/1/users/1")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -112,7 +112,7 @@ defmodule Placid.RouterTest do
   end
 
   test "resource/2 patch" do
-    conn = conn(:patch, "/users/1")
+    conn = conn(:patch, "/1/users/1")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -120,7 +120,7 @@ defmodule Placid.RouterTest do
   end
 
   test "resource/2 delete" do
-    conn = conn(:delete, "/users/1")
+    conn = conn(:delete, "/1/users/1")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
@@ -128,12 +128,20 @@ defmodule Placid.RouterTest do
   end
 
   test "filter plug is run" do
-    conn = conn(:get, "/get")
+    conn = conn(:get, "/1/get")
       |> Placid.RouterTest.Router.call([])
 
     assert conn.state === :sent
     assert conn.status === 200
     assert get_resp_header(conn, "content-type") === ["application/json; charset=utf-8"]
+  end
+
+  test "resource/2 index with prepended path" do
+    conn = conn(:get, "/1/users/1/comments")
+      |> Placid.RouterTest.Router.call([])
+
+    assert conn.state === :sent
+    assert conn.status === 200
   end
 
   defmodule Foo do
@@ -244,22 +252,38 @@ defmodule Placid.RouterTest do
     end
   end
 
+  defmodule Baz do
+    use Placid.Handler
+
+    def index(conn, _args) do
+      conn
+        |> Map.put(:resp_body, "")
+        |> Map.put(:status, 200)
+        |> Map.put(:state, :set)
+        |> raw
+    end
+  end
+
   defmodule Router do
     use Placid.Router
 
     plug :set_utf8_json
 
-    get         "/get",     Foo, :get
-    get         "/get/:id", Foo, :get
-    post        "/post",    Foo, :post
-    put         "/put",     Foo, :put
-    patch       "/patch",   Foo, :patch
-    delete      "/delete",  Foo, :delete
-    options     "/options", "HEAD,GET"
-    any         "/any",     Foo, :any
-    raw :trace, "/trace",     Foo, :trace
+    version "1" do
+      get         "/get",     Foo, :get
+      get         "/get/:id", Foo, :get
+      post        "/post",    Foo, :post
+      put         "/put",     Foo, :put
+      patch       "/patch",   Foo, :patch
+      delete      "/delete",  Foo, :delete
+      options     "/options", "HEAD,GET"
+      any         "/any",     Foo, :any
+      raw :trace, "/trace",   Foo, :trace
 
-    resource :users, Bar
+      resource :users,    Bar
+      resource :comments, Baz, prepend_path: "/users/:user_id", 
+                               only: [:index]
+    end
 
     def set_utf8_json(%Plug.Conn{state: state} = conn, _) when state in [:unset, :set] do
       conn |> put_resp_header("content-type", "application/json; charset=utf-8")
