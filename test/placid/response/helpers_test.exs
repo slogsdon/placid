@@ -42,7 +42,7 @@ defmodule Placid.Response.HelpersTest do
   end
 
   test "render/3 without opts" do
-    headers = [{"content-type", "text/json"}]
+    headers = [{"accepts", "text/json"}]
     conn = conn(:get, "/", nil, headers: headers)
       |> Map.put(:state, :set)
       |> render([])
@@ -52,7 +52,7 @@ defmodule Placid.Response.HelpersTest do
   end
 
   test "render/3 with opts" do
-    headers = [{"content-type", "text/json"}]
+    headers = [{"accepts", "text/json"}]
     conn = conn(:get, "/", nil, headers: headers)
       |> Map.put(:state, :set)
       |> render([], [content_type: "application/json"])
@@ -125,7 +125,7 @@ defmodule Placid.Response.HelpersTest do
   end
 
   test "resp already sent on set content-type" do
-    headers = [{"content-type", "text/json"}]
+    headers = [{"accepts", "text/json"}]
     conn = conn(:get, "/", nil, headers: headers)
       |> Map.put(:state, :sent)
       |> render([])
