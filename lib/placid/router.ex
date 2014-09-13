@@ -95,6 +95,7 @@ defmodule Placid.Router do
       Module.register_attribute(__MODULE__, :version, accumulate: false)
 
       # Plugs we want early in the stack
+      plug Placid.Request.TranslateExtensions
       plug Plug.Parsers, parsers: [ Placid.Request.Parsers.JSON, 
                                     Placid.Request.Parsers.XML,
                                     :urlencoded, 
