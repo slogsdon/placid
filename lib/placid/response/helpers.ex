@@ -102,7 +102,7 @@ defmodule Placid.Response.Helpers do
   """
   @spec render(Plug.Conn.t, enumerable, Keyword.t) :: Plug.Conn.t
   def render(conn, data, opts \\ []) do
-    req_ct = case Plug.Conn.get_req_header(conn, "accepts") do
+    req_ct = case Plug.Conn.get_req_header(conn, "accept") do
       [ct] -> ct
       _ -> Application.get_env(:placid, :default_content_type, "application/json")
     end

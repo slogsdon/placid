@@ -150,7 +150,7 @@ defmodule Placid.RouterTest do
 
     assert conn.state === :sent
     assert conn.status === 200
-    assert get_req_header(conn, "accepts") === ["application/json"]
+    assert get_req_header(conn, "accept") === ["application/json"]
   end
 
   defmodule Foo do

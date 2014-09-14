@@ -7,7 +7,7 @@ defmodule Placid.Response.RenderingTest do
     type = "json"
     message = "unsupported media type #{type}"
     assert_raise(UnsupportedResponseTypeError, message, fn ->
-        headers = [{"accepts", type}]
+        headers = [{"accept", type}]
         conn(:get, "/json_list", nil, headers: headers)
           |> Placid.Response.RenderingTest.Router.call([])
       end)
@@ -17,14 +17,14 @@ defmodule Placid.Response.RenderingTest do
     type = "text/html"
     message = "unsupported media type #{type}"
     assert_raise(UnsupportedResponseTypeError, message, fn ->
-        headers = [{"accepts", type}]
+        headers = [{"accept", type}]
         conn(:get, "/json_list", nil, headers: headers)
           |> Placid.Response.RenderingTest.Router.call([])
       end)
   end
 
   test "encodes a json response with list" do
-    headers = [{"accepts", "application/json"}]
+    headers = [{"accept", "application/json"}]
     conn = conn(:get, "/json_list", nil, headers: headers)
       |> Placid.Response.RenderingTest.Router.call([])
 
@@ -34,7 +34,7 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a json response with map" do
-    headers = [{"accepts", "application/json"}]
+    headers = [{"accept", "application/json"}]
     conn = conn(:get, "/json_map", nil, headers: headers)
       |> Placid.Response.RenderingTest.Router.call([])
 
@@ -43,7 +43,7 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a json response with struct" do
-    headers = [{"accepts", "application/json"}]
+    headers = [{"accept", "application/json"}]
     conn = conn(:get, "/json_struct", nil, headers: headers)
       |> Placid.Response.RenderingTest.Router.call([])
 
@@ -52,7 +52,7 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a xml response with list" do
-    headers = [{"accepts", "application/xml"}]
+    headers = [{"accept", "application/xml"}]
     conn = conn(:get, "/xml_list", nil, headers: headers)
       |> Placid.Response.RenderingTest.Router.call([])
 
@@ -61,7 +61,7 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a xml response with map" do
-    headers = [{"accepts", "application/xml"}]
+    headers = [{"accept", "application/xml"}]
     conn = conn(:get, "/xml_map", nil, headers: headers)
       |> Placid.Response.RenderingTest.Router.call([])
 
@@ -70,7 +70,7 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a xml response with map and attrs" do
-    headers = [{"accepts", "application/xml"}]
+    headers = [{"accept", "application/xml"}]
     conn = conn(:get, "/xml_map_with_attrs", nil, headers: headers)
       |> Placid.Response.RenderingTest.Router.call([])
 
@@ -79,7 +79,7 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a xml response with struct" do
-    headers = [{"accepts", "application/xml"}]
+    headers = [{"accept", "application/xml"}]
     conn = conn(:get, "/xml_struct", nil, headers: headers)
       |> Placid.Response.RenderingTest.Router.call([])
 
@@ -88,7 +88,7 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a xml response with struct and attrs" do
-    headers = [{"accepts", "application/xml"}]
+    headers = [{"accept", "application/xml"}]
     conn = conn(:get, "/xml_struct_with_attrs", nil, headers: headers)
       |> Placid.Response.RenderingTest.Router.call([])
 

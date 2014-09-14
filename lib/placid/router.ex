@@ -22,10 +22,10 @@ defmodule Placid.Router do
   HTTP spec compliant.
 
   `version/2` allows requests to contained endpoints when version exists in 
-  either `Accepts` header or URL (which ever is defined in the app config).
+  either `Accept` header or URL (which ever is defined in the app config).
 
   Extra routes will be added for `*.json`, `*.xml`, etc. requests for optionally 
-  specifying desired content type without the use of the `Accepts` header. These 
+  specifying desired content type without the use of the `Accept` header. These 
   match parsing/rendering abilities of Placid.
 
   ## Example
@@ -95,7 +95,7 @@ defmodule Placid.Router do
       Module.register_attribute(__MODULE__, :version, accumulate: false)
 
       # Plugs we want early in the stack
-      plug Placid.Request.TranslateExtensions
+      # plug Placid.Request.TranslateExtensions
       plug Plug.Parsers, parsers: [ Placid.Request.Parsers.JSON, 
                                     Placid.Request.Parsers.XML,
                                     :urlencoded, 
@@ -321,12 +321,13 @@ defmodule Placid.Router do
     do_build_match :options, route, body, caller
   end
   defp build_match(method, route, handler, action, caller) do
-    body = quote do
-        opts = [ action: unquote(action), args: binding() ]
-        unquote(handler).call conn, unquote(handler).init(opts)
-      end
+    body = build_body handler, action
+    body_json = build_body handler, action, :json
+    body_xml = build_body handler, action, :xml
 
-    do_build_match method, route, body, caller
+    [ do_build_match(method, route <> ".json", body_json, caller),
+      do_build_match(method, route <> ".xml", body_xml, caller),
+      do_build_match(method, route, body, caller) ]
   end
 
   defp do_build_match(verb, route, body, caller) do
@@ -339,6 +340,21 @@ defmodule Placid.Router do
           unquote(body)
         end
       end
+    end
+  end
+
+  defp build_body(handler, action), do: build_body(handler, action, :skip)
+  defp build_body(handler, action, add_header) do
+    header = case add_header do
+        :json -> [{"accept", "application/json"}]
+        :xml  -> [{"accept", "application/xml"}]
+        _     -> []
+      end
+
+    quote do
+      opts = [ action: unquote(action), args: binding() ]
+      unquote(handler).call %{ conn | req_headers: unquote(header) ++ 
+          conn.req_headers }, unquote(handler).init(opts)
     end
   end
 
