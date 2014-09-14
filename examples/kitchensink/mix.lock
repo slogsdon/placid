@@ -1,0 +1,8 @@
+%{"cowboy": {:package, "1.0.0"},
+  "cowlib": {:package, "1.0.0"},
+  "linguist": {:package, "0.1.2"},
+  "placid": {:git, "git://github.com/slogsdon/placid.git", "a07b3be77a841fc8b18b9f5046c48cb89aa68844", []},
+  "plug": {:package, "0.7.0"},
+  "poison": {:package, "1.1.1"},
+  "ranch": {:package, "1.0.0"},
+  "xml_builder": {:package, "0.0.5"}}
