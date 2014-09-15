@@ -144,14 +144,14 @@ defmodule Placid.RouterTest do
     assert conn.status === 200
   end
 
-  test "get/3 with translate ext to accepts header" do
-    conn = conn(:get, "/1/get.json")
-      |> Placid.RouterTest.Router.call([])
+  # test "get/3 with translate ext to accepts header" do
+  #   conn = conn(:get, "/1/get.json")
+  #     |> Placid.RouterTest.Router.call([])
 
-    assert conn.state === :sent
-    assert conn.status === 200
-    assert get_req_header(conn, "accept") === ["application/json"]
-  end
+  #   assert conn.state === :sent
+  #   assert conn.status === 200
+  #   assert get_req_header(conn, "accept") === ["application/json"]
+  # end
 
   defmodule Foo do
     use Placid.Handler

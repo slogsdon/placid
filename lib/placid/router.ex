@@ -322,11 +322,11 @@ defmodule Placid.Router do
   end
   defp build_match(method, route, handler, action, caller) do
     body = build_body handler, action
-    body_json = build_body handler, action, :json
-    body_xml = build_body handler, action, :xml
+    # body_json = build_body handler, action, :json
+    # body_xml = build_body handler, action, :xml
 
-    [ do_build_match(method, route <> ".json", body_json, caller),
-      do_build_match(method, route <> ".xml", body_xml, caller),
+    [ #do_build_match(method, route <> ".json", body_json, caller),
+      #do_build_match(method, route <> ".xml", body_xml, caller),
       do_build_match(method, route, body, caller) ]
   end
 
