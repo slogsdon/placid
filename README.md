@@ -6,8 +6,10 @@ A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with El
 
 - [Routing](#routing)
 - [Handlers](#handlers)
+- [CORS](#cors)
 - [Request Parsing](#request-parsing)
 - [Rendering](#rendering)
+- [Internationalization](#internationalization)
 - [TODO](#todo)
 
 ## Routing
@@ -69,6 +71,8 @@ end
 
 Extra routes will need to be added for `*.json`, `*.xml`, etc. requests for optionally specifying desired content type without the use of the `Accepts` header. These should match parsing/rendering abilities of Placid.
 
+Should required/optional params be gathered for matching purposes? Only return a matched route when all required params are present?
+
 ## Handlers
 
 ```elixir
@@ -125,6 +129,28 @@ end
 
 Actions in handler modules are responsible for handling a request once it has been routed. These actions typically generate a response, whether that be an error, a result, or a result set, so that it can be rendered to the client with the correct content type further up the stack.
 
+## CORS
+
+Should have an option to respect Cross-origin resource sharing (CORS) when desired.
+
+Main response headers:
+
+- `Access-Control-Allow-Origin`: *|[list of allowed hosts]
+- `Access-Control-Allow-Credentials`: true (or ignore header)
+- `Access-Control-Allow-Methods`: [list of allowed methods]
+- `Access-Control-Allow-Headers`: [list of allowed beyond simple]
+    - `Cache-Control`
+    - `Content-Language`
+    - `Content-Type`
+    - `Expires`
+    - `Last-Modified`
+    - `Pragma`
+- `Access-Control-Max-Age`: [# of seconds]
+
+Should check over the [HTML5 Rocks CORS flowchart](http://www.html5rocks.com/static/images/cors_server_flowchart.png) as much as possible.
+
+Is `JSON-P` still a thing? Should it be supported? What happens with non-`GET` requests?
+
 ## Request Parsing
 
 Parsing request bodies from their content type to Elixir terms allows the handler actions to easily use that data in responding to the client. There should be one parser for each supported response content type, with an additional parser for form encoded data.
@@ -161,6 +187,12 @@ defmodule Placid.Response.Rendering.JSON do
   def serialize(_, _, _), do: :next
 end
 ```
+
+## Internationalization
+
+I18n should always be considered when producing an API.
+
+[Linguist](https://github.com/chrismccord/linguist) is already a part of the project's dependencies. Need to think of ways to make translations seemless as possible, similar to rendering.
 
 ## TODO
 
