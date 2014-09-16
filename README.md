@@ -6,6 +6,7 @@
 
 A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with Elixir.
 
+- [Configuration](#configuration)
 - [Routing](#routing)
 - [Handlers](#handlers)
 - [CORS](#cors)
@@ -13,6 +14,25 @@ A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with El
 - [Rendering](#rendering)
 - [Internationalization](#internationalization)
 - [TODO](#todo)
+
+## Configuration
+
+### HTTPS
+
+By default, connecting to a Placid-based API will require all requests to be made over HTTPS, responding to HTTP requests with a `403 Forbidden`. If desired, the `https_only` option may be set allow HTTP requests to be served by your application.
+
+> Note: Create a self-signed certificate for easy testing.
+>
+> ```
+> # Generate a keyfile
+> $ openssl genrsa -out key.pem 2048
+> 
+> # Create a CSR
+> $ openssl req -new -key key.pem -out request.pem
+> 
+> # Generate a certfile that expires in $NUM_DAYS
+> $ openssl x509 -req -days $NUM_DAYS -in request.pem -signkey key.pem -out cert.pem
+> ```
 
 ## Routing
 

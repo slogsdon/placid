@@ -136,6 +136,19 @@ defmodule Placid.Router do
         conn |> Plug.Conn.put_resp_header("content-type", content_type)
       end
 
+      def run(opts \\ nil) do
+        adapter = Placid.Config.get(:placid, :plug_adapter, Plug.Adapters.Cowboy)
+        opts = opts || Placid.Config.get(__MODULE__)          
+
+        adapter.https __MODULE__, [], opts[:https]
+        if opts[:https_only] do
+          # Sends `403 Forbidden` to all HTTP requests
+          adapter.http Placid.Request.HttpsOnly, [], opts[:http]
+        else
+          adapter.http __MODULE__, [], opts[:http]
+        end
+      end
+
       def match(conn, _opts) do
         plug_route = __MODULE__.do_match(conn.method, conn.path_info)
         Plug.Conn.assign_private(conn, :plug_route,plug_route)

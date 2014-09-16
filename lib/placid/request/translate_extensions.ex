@@ -16,7 +16,7 @@ defmodule Placid.Request.TranslateExtensions do
     if String.ends_with?(last, ext) do
       [_|reversed] = conn.path_info |> Enum.reverse
       path_info = [String.replace(last,".#{ext}","")|reversed] |> Enum.reverse
-      %{ conn | req_headers: [{"accepts", content_type}] ++ conn.req_headers,
+      %{ conn | req_headers: [{"accept", content_type}] ++ conn.req_headers,
                 path_info: path_info }
     else
       conn

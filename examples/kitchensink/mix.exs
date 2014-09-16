@@ -2,18 +2,18 @@ defmodule KitchenSink.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :kitchen_sink,
-     version: "0.0.1",
-     elixir: "~> 1.0.0",
-     deps: deps]
+    [ app: :kitchen_sink,
+      version: "0.0.1",
+      elixir: "~> 1.0.0",
+      deps: deps ]
   end
 
   # Configuration for the OTP application
   #
   # Type `mix help compile.app` for more information
   def application do
-    [applications: [:logger, :placid],
-     mod: {KitchenSink, []}]
+    [ applications: [:logger, :placid],
+      mod: {KitchenSink, []} ]
   end
 
   # Dependencies can be Hex packages:
@@ -26,6 +26,6 @@ defmodule KitchenSink.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    [ {:placid, github: "slogsdon/placid"} ]
+    [ {:placid, path: "../../."} ]
   end
 end
