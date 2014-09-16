@@ -19,7 +19,7 @@ A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with El
 
 ### HTTPS
 
-By default, connecting to a Placid-based API will require all requests to be made over HTTPS, responding to HTTP requests with a `403 Forbidden`. If desired, the `https_only` option may be set allow HTTP requests to be served by your application.
+By default, connecting to a Placid-based API will require all requests to be made over HTTPS, responding to HTTP requests with a `403 Forbidden`. If desired, the `https_only` option may be set allow HTTP requests to be served by your application. Take a look at the [kitchen sink example](https://github.com/slogsdon/placid/blob/master/examples/kitchensink/config/config.exs#L12) to see this in action.
 
 > Note: Create a self-signed certificate for easy testing.
 >
@@ -227,8 +227,8 @@ I18n should always be considered when producing an API.
 - [ ] Compatibility with web frameworks via umbrella projects.
     - [ ] Would be nice to offer tight integration when available, e.g. `Phoenix.Topic` notifications
 - [ ] Foundations
-    - [ ] Prefer TLS. Require clients to use TLS when enabled in server
-    - [ ] Version with `Accepts` header. Fallback to URL versioning
+    - [X] Prefer TLS. Require clients to use TLS when enabled in server
+    - [ ] Version with `Accept` header. Fallback to URL versioning
     - [ ] Support caching with `Etags`
     - [ ] Trace requests with Request-Ids
     - [ ] Paginate with ranges. Mostly lies on end-developer, but we should provide facility to easily set headers
