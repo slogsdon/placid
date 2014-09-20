@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Placid.Response.Rendering</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+    <script type="text/javascript" charset="utf-8">
+      relpath = '';
+      if (relpath != '') relpath += '/';
+    </script>
+
+    <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+  </head>
+
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+
+    <div id="content">
+      <div class="breadcrumbs">Placid v0.1.1-dev &rarr; <a href="overview.html">Overview</a> &rarr; Placid &rarr; Response &rarr; <a href="Placid.Response.Rendering.html">Rendering</a></div>
+
+      <h1>
+        Placid.Response.Rendering
+        
+      </h1>
+
+      <ul class="summary_links">
+        
+          <li><a href="#summary">Summary</a></li>
+        
+        
+          <li><a href="#functions_details">Functions</a></li>
+        
+        
+        
+        
+      </ul>
+
+      
+        <div id="moduledoc" class="docstring">
+          <p><a href="Placid.Response.Rendering.html"><code class="inline">Placid.Response.Rendering</code></a> provides the ability for a response to be 
+automatically serialized based on its content-type.</p>
+<h2>Engines</h2>
+<p>Rendering engines translate Elixir terms into a serialized format. Each engine
+is responsible for a single type of content and is capable of rendering for 
+multiple mime types.</p>
+<p>Rendering engines should implement callbacks for the following behaviour:</p>
+<pre><code>defmodule Placid.Response.Rendering.Engine do
+  use Behaviour
+
+  @type data    :: Keyword | Map | List
+  @type type    :: binary
+  @type subtype :: binary
+
+  defcallback serialize(data, type, subtype) :: { :ok, binary } | :next
+end</code></pre>
+<p>Current, built-in implementations include:</p>
+<ul>
+<li><code class="inline">Placid.Response.Rendering.Engines.JSON</code>
+</li>
+<li><code class="inline">Placid.Response.Rendering.Engines.XML</code>
+</li>
+</ul>
+
+        </div>
+      
+
+      
+
+      
+        <h2 id="summary">Summary<div class="detail_header_links"><a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a></div></h2>
+        <table class="summary">
+          <tr>
+  <td class="summary_signature"><a href="#serialize_to_body/3">serialize_to_body(conn, data, content_type)</a></td>
+  
+    <td class="summary_synopsis"><p>Serializes <code class="inline">data</code> when an available rendering engine exists for the given
+<code class="inline">content_type</code></p>
+</td>
+  
+</tr>
+
+        </table>
+      
+
+      
+
+      
+        <div id="functions_details" class="details_list">
+          <h2>Functions</h2>
+          <div class="detail">
+  <div class="detail_header" id="serialize_to_body/3">
+    <span class="signature"><strong>serialize_to_body(conn, data, content_type)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(function)</span>
+      <a href="#serialize_to_body/3" class="detail_link" title="Link to this function">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Serializes <code class="inline">data</code> when an available rendering engine exists for the given
+<code class="inline">content_type</code>.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">conn</code> - <code class="inline">Plug.Conn</code> - the current connection
+</li>
+<li><code class="inline">data</code> - <code class="inline">List</code> | <code class="inline">Map</code> | <code class="inline">Struct</code> - Elixir terms to be serialized
+</li>
+<li><code class="inline">content_type</code> - <code class="inline">String</code> - response content-type
+</li>
+</ul>
+<h2>Returns</h2>
+<p><code class="inline">Plug.Conn</code></p>
+</div>
+  
+</div>
+
+        </div>
+      
+
+      
+
+      
+    </div>
+  </body>
+</html>

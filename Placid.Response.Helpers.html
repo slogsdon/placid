@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Placid.Response.Helpers</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+    <script type="text/javascript" charset="utf-8">
+      relpath = '';
+      if (relpath != '') relpath += '/';
+    </script>
+
+    <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+  </head>
+
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+
+    <div id="content">
+      <div class="breadcrumbs">Placid v0.1.1-dev &rarr; <a href="overview.html">Overview</a> &rarr; Placid &rarr; Response &rarr; <a href="Placid.Response.Helpers.html">Helpers</a></div>
+
+      <h1>
+        Placid.Response.Helpers
+        
+      </h1>
+
+      <ul class="summary_links">
+        
+          <li><a href="#summary">Summary</a></li>
+        
+        
+          <li><a href="#functions_details">Functions</a></li>
+        
+        
+        
+        
+          <li><a href="#types_details">Types</a></li>
+        
+      </ul>
+
+      
+        <div id="moduledoc" class="docstring">
+          <p>Placid bundles these response helpers with handlers to 
+assist in sending a response.</p>
+<h4>Example</h4>
+<pre><code>defmodule Hello do
+  use Placid.Handler
+
+  def index(conn, []) do
+    render conn, &quot;showing index handler&quot;
+  end
+
+  def show(conn, args) do
+    forward conn, OtherHandler, :show, args
+  end
+
+  def create(conn, []) do
+    render conn, &quot;page created&quot;
+      |&gt; status(201)
+      |&gt; send_resp
+  end
+end</code></pre>
+
+        </div>
+      
+
+      
+
+      
+        <h2 id="summary">Summary<div class="detail_header_links"><a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a></div></h2>
+        <table class="summary">
+          <tr>
+  <td class="summary_signature"><a href="#forward/4">forward(conn, handler, action, args \\ [])</a></td>
+  
+    <td class="summary_synopsis"><p>Forwards the response to another handler action</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#halt!/2">halt!(conn, opts \\ [])</a></td>
+  
+    <td class="summary_synopsis"><p>Ends the response</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#headers/2">headers(conn, headers)</a></td>
+  
+    <td class="summary_synopsis"><p>sets response headers</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#not_found/2">not_found(conn, message \\ &quot;Not Found&quot;)</a></td>
+  
+    <td class="summary_synopsis"><p>Sends a 404 (Not found) response</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#raw/1">raw(conn)</a></td>
+  
+    <td class="summary_synopsis"><p>Sends response as-is. It is expected that status codes,
+headers, body, etc have been set by the handler
+action</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#redirect/3">redirect(conn, location, opts \\ [])</a></td>
+  
+    <td class="summary_synopsis"><p>Redirects the response</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#render/3">render(conn, data, opts \\ [])</a></td>
+  
+    <td class="summary_synopsis"><p>Sends a normal response</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#status/2">status(conn, status_code)</a></td>
+  
+    <td class="summary_synopsis"><p>sets connection status</p>
+</td>
+  
+</tr>
+
+        </table>
+      
+
+      
+        <div id="types_details" class="details_list">
+          <h2>Types <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a></h2>
+          <div class="type_detail">
+  <p class="typespec" id="t:status_code/0">
+    <a href="#t:status_code/0">status_code</a> :: atom | 100 .. 999
+  </p>
+  
+</div>
+<div class="type_detail">
+  <p class="typespec" id="t:enumerable/0">
+    <a href="#t:enumerable/0">enumerable</a> :: Map | List
+  </p>
+  
+</div>
+
+        </div>
+      
+
+      
+        <div id="functions_details" class="details_list">
+          <h2>Functions</h2>
+          <div class="detail">
+  <div class="detail_header" id="forward/4">
+    <span class="signature"><strong>forward(conn, handler, action, args \\ [])</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(function)</span>
+      <a href="#forward/4" class="detail_link" title="Link to this function">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+    <p>Specs:</p>
+    <ul class="spec">
+      
+        <li>forward(Plug.Conn.t, atom, atom, <a href="http://elixir-lang.org/docs/stable/elixir/Keyword.html#t:t/0">Keyword.t</a>) :: Plug.Conn.t</li>
+      
+    </ul>
+  
+  <div class="docstring"><p>Forwards the response to another handler action.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">conn</code> - <code class="inline">Plug.Conn</code>
+</li>
+<li><code class="inline">handler</code> - <code class="inline">Atom</code>
+</li>
+<li><code class="inline">action</code> - <code class="inline">Atom</code>
+</li>
+<li><code class="inline">args</code> - <code class="inline">Keyword</code>
+</li>
+</ul>
+<h2>Returns</h2>
+<p><code class="inline">Plug.Conn</code></p>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="halt!/2">
+    <span class="signature"><strong>halt!(conn, opts \\ [])</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(function)</span>
+      <a href="#halt!/2" class="detail_link" title="Link to this function">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+    <p>Specs:</p>
+    <ul class="spec">
+      
+        <li>halt!(Plug.Conn.t, <a href="http://elixir-lang.org/docs/stable/elixir/Keyword.html#t:t/0">Keyword.t</a>) :: Plug.Conn.t</li>
+      
+    </ul>
+  
+  <div class="docstring"><p>Ends the response.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">conn</code> - <code class="inline">Plug.Conn</code>
+</li>
+<li><code class="inline">opts</code> - <code class="inline">Keyword</code>
+</li>
+</ul>
+<h2>Returns</h2>
+<p><code class="inline">Plug.Conn</code></p>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="headers/2">
+    <span class="signature"><strong>headers(conn, headers)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(function)</span>
+      <a href="#headers/2" class="detail_link" title="Link to this function">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+    <p>Specs:</p>
+    <ul class="spec">
+      
+        <li>headers(Plug.Conn.t, Plug.Conn.headers) :: Plug.Conn.t</li>
+      
+    </ul>
+  
+  <div class="docstring"><p>sets response headers</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">conn</code> - <code class="inline">Plug.Conn</code>
+</li>
+<li><code class="inline">headers</code> - <code class="inline">Map</code>
+</li>
+</ul>
+<h2>Returns</h2>
+<p><code class="inline">Plug.Conn</code></p>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="not_found/2">
+    <span class="signature"><strong>not_found(conn, message \\ &quot;Not Found&quot;)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(function)</span>
+      <a href="#not_found/2" class="detail_link" title="Link to this function">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+    <p>Specs:</p>
+    <ul class="spec">
+      
+        <li>not_found(Plug.Conn.t, binary) :: Plug.Conn.t</li>
+      
+    </ul>
+  
+  <div class="docstring"><p>Sends a 404 (Not found) response.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">conn</code> - <code class="inline">Plug.Conn</code>
+</li>
+</ul>
+<h2>Returns</h2>
+<p><code class="inline">Plug.Conn</code></p>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="raw/1">
+    <span class="signature"><strong>raw(conn)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(function)</span>
+      <a href="#raw/1" class="detail_link" title="Link to this function">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+    <p>Specs:</p>
+    <ul class="spec">
+      
+        <li>raw(Plug.Conn.t) :: Plug.Conn.t</li>
+      
+    </ul>
+  
+  <div class="docstring"><p>Sends response as-is. It is expected that status codes,
+headers, body, etc have been set by the handler
+action.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">conn</code> - <code class="inline">Plug.Conn</code>
+</li>
+</ul>
+<h2>Returns</h2>
+<p><code class="inline">Plug.Conn</code></p>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="redirect/3">
+    <span class="signature"><strong>redirect(conn, location, opts \\ [])</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(function)</span>
+      <a href="#redirect/3" class="detail_link" title="Link to this function">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+    <p>Specs:</p>
+    <ul class="spec">
+      
+        <li>redirect(Plug.Conn.t, binary, <a href="http://elixir-lang.org/docs/stable/elixir/Keyword.html#t:t/0">Keyword.t</a>) :: Plug.Conn.t</li>
+      
+    </ul>
+  
+  <div class="docstring"><p>Redirects the response.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">conn</code> - <code class="inline">Plug.Conn</code>
+</li>
+<li><code class="inline">location</code> - <code class="inline">String</code>
+</li>
+<li><code class="inline">opts</code> - <code class="inline">Keyword</code>
+</li>
+</ul>
+<h2>Returns</h2>
+<p><code class="inline">Plug.Conn</code></p>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="render/3">
+    <span class="signature"><strong>render(conn, data, opts \\ [])</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(function)</span>
+      <a href="#render/3" class="detail_link" title="Link to this function">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+    <p>Specs:</p>
+    <ul class="spec">
+      
+        <li>render(Plug.Conn.t, <a href="#t:enumerable/0">enumerable</a>, <a href="http://elixir-lang.org/docs/stable/elixir/Keyword.html#t:t/0">Keyword.t</a>) :: Plug.Conn.t</li>
+      
+    </ul>
+  
+  <div class="docstring"><p>Sends a normal response.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">conn</code> - <code class="inline">Plug.Conn</code>
+</li>
+<li><code class="inline">data</code> - <code class="inline">Enumerable</code>
+</li>
+<li><code class="inline">opts</code> - <code class="inline">Keyword</code>
+</li>
+</ul>
+<h2>Returns</h2>
+<p><code class="inline">Plug.Conn</code></p>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="status/2">
+    <span class="signature"><strong>status(conn, status_code)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(function)</span>
+      <a href="#status/2" class="detail_link" title="Link to this function">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+    <p>Specs:</p>
+    <ul class="spec">
+      
+        <li>status(Plug.Conn.t, <a href="#t:status_code/0">status_code</a>) :: Plug.Conn.t</li>
+      
+    </ul>
+  
+  <div class="docstring"><p>sets connection status</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">conn</code> - <code class="inline">Plug.Conn</code>
+</li>
+<li><code class="inline">status_code</code> - <code class="inline">Integer</code>
+</li>
+</ul>
+<h2>Returns</h2>
+<p><code class="inline">Plug.Conn</code></p>
+</div>
+  
+</div>
+
+        </div>
+      
+
+      
+
+      
+    </div>
+  </body>
+</html>

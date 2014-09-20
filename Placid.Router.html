@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Placid.Router</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+    <script type="text/javascript" charset="utf-8">
+      relpath = '';
+      if (relpath != '') relpath += '/';
+    </script>
+
+    <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+  </head>
+
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+
+    <div id="content">
+      <div class="breadcrumbs">Placid v0.1.1-dev &rarr; <a href="overview.html">Overview</a> &rarr; Placid &rarr; <a href="Placid.Router.html">Router</a></div>
+
+      <h1>
+        Placid.Router
+        
+      </h1>
+
+      <ul class="summary_links">
+        
+          <li><a href="#summary">Summary</a></li>
+        
+        
+        
+          <li><a href="#macros_details">Macros</a></li>
+        
+        
+        
+      </ul>
+
+      
+        <div id="moduledoc" class="docstring">
+          <p><a href="Placid.Router.html"><code class="inline">Placid.Router</code></a> defines an alternate format for <code class="inline">Plug.Router</code>
+routing. Supports all HTTP methods that <code class="inline">Plug.Router</code> supports.</p>
+<p>Routes are defined with the form:</p>
+<pre><code>method route [guard], handler, action</code></pre>
+<p><code class="inline">method</code> is <code class="inline">get</code>, <code class="inline">post</code>, <code class="inline">put</code>, <code class="inline">patch</code>, or <code class="inline">delete</code>, each 
+responsible for a single HTTP method. <code class="inline">method</code> can also be <code class="inline">any</code>, which will 
+match on all HTTP methods. <code class="inline">options</code> is yet another option for <code class="inline">method</code>, but
+when using <code class="inline">options</code>, only a route path and the methods that route path
+supports are needed. <code class="inline">handler</code> is any valid Elixir module name, and 
+<code class="inline">action</code> is any valid public function defined in the <code class="inline">handler</code> module.</p>
+<p><a href="#get/3"><code class="inline">get/3</code></a>, <a href="#post/3"><code class="inline">post/3</code></a>, <a href="#put/3"><code class="inline">put/3</code></a>, <a href="#patch/3"><code class="inline">patch/3</code></a>, <a href="#delete/3"><code class="inline">delete/3</code></a>, <a href="#options/2"><code class="inline">options/2</code></a>, and <a href="#any/3"><code class="inline">any/3</code></a> 
+are already built-in as described. <code class="inline">resource/2</code> exists but will need 
+modifications to create everything as noted.</p>
+<p><a href="#raw/4"><code class="inline">raw/4</code></a> allows for using custom HTTP methods, allowing your application to be 
+HTTP spec compliant.</p>
+<p><a href="#version/2"><code class="inline">version/2</code></a> allows requests to contained endpoints when version exists in 
+either <code class="inline">Accept</code> header or URL (which ever is defined in the app config).</p>
+<p>Extra routes will be added for <code class="inline">*.json</code>, <code class="inline">*.xml</code>, etc. requests for optionally 
+specifying desired content type without the use of the <code class="inline">Accept</code> header. These 
+match parsing/rendering abilities of Placid.</p>
+<h2>Example</h2>
+<pre><code>defmodule Router do
+  use Placid.Router
+
+  # Define one of the versions of the API
+  # with a simple version number &quot;1&quot;
+  # or following semver &quot;1.0.0&quot;
+  # or date of release &quot;2014-09-06&quot;
+  version &quot;1&quot; do 
+    # Define your routes here
+    get  &quot;/&quot;,               Handlers.V1.Pages, :index
+    get  &quot;/pages&quot;,          Handlers.V1.Pages, :create
+    post &quot;/pages&quot;,          Handlers.V1.Pages, :create
+    put  &quot;/pages/:page_id&quot; when id == 1,
+                            Handlers.V1.Pages, :update_only_one
+    get  &quot;/pages/:page_id&quot;, Handlers.V1.Pages, :show
+
+    # Auto-create a full set of routes for resources
+    #
+    resource :users,        Handlers.V1.User, arg: :user_id
+    #
+    # Generates:
+    #
+    # get     &quot;/users&quot;,           Handlers.V1.User, :index
+    # post    &quot;/users&quot;,           Handlers.V1.User, :create
+    # get     &quot;/users/:user_id&quot;,  Handlers.V1.User, :show
+    # put     &quot;/users/:user_id&quot;,  Handlers.V1.User, :update
+    # patch   &quot;/users/:user_id&quot;,  Handlers.V1.User, :patch
+    # delete  &quot;/users/:user_id&quot;,  Handlers.V1.User, :delete
+    #
+    # options &quot;/users&quot;,           &quot;HEAD,GET,POST&quot;
+    # options &quot;/users/:_user_id&quot;, &quot;HEAD,GET,PUT,PATCH,DELETE&quot;
+  end
+
+  # An updated version of the AP
+  version &quot;2&quot; do 
+    get  &quot;/&quot;,               Handlers.V2.Pages,  :index
+    post &quot;/pages&quot;,          Handlers.V2.Pages,  :create
+    get  &quot;/pages/:page_id&quot;, Handlers.V2.Pages,  :show
+    put  &quot;/pages/:page_id&quot;, Handlers.V2.Pages,  :update
+
+    raw :trace, &quot;/trace&quot;,   Handlers.V2.Tracer, :trace
+
+    resource :users,        Handlers.V2.User
+    resource :groups,       Handlers.V2.Group
+  end
+end</code></pre>
+
+        </div>
+      
+
+      
+
+      
+        <h2 id="summary">Summary<div class="detail_header_links"><a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a></div></h2>
+        <table class="summary">
+          <tr>
+  <td class="summary_signature"><a href="#any/3">any(route, handler, action)</a></td>
+  
+    <td class="summary_synopsis"><p>Macro for defining <code class="inline">ANY</code> routes</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#delete/3">delete(route, handler, action)</a></td>
+  
+    <td class="summary_synopsis"><p>Macro for defining <code class="inline">DELETE</code> routes</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#get/3">get(route, handler, action)</a></td>
+  
+    <td class="summary_synopsis"><p>Macro for defining <code class="inline">GET</code> routes</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#options/2">options(route, allows)</a></td>
+  
+    <td class="summary_synopsis"><p>Macro for defining <code class="inline">OPTIONS</code> routes</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#patch/3">patch(route, handler, action)</a></td>
+  
+    <td class="summary_synopsis"><p>Macro for defining <code class="inline">PATCH</code> routes</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#post/3">post(route, handler, action)</a></td>
+  
+    <td class="summary_synopsis"><p>Macro for defining <code class="inline">POST</code> routes</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#put/3">put(route, handler, action)</a></td>
+  
+    <td class="summary_synopsis"><p>Macro for defining <code class="inline">PUT</code> routes</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#raw/4">raw(method, route, handler, action)</a></td>
+  
+    <td class="summary_synopsis"><p>Macro for defining routes for custom HTTP methods</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#resource/3">resource(resource, handler, opts \\ [])</a></td>
+  
+    <td class="summary_synopsis"><p>Creates RESTful resource endpoints for a route/handler
+combination</p>
+</td>
+  
+</tr>
+<tr>
+  <td class="summary_signature"><a href="#version/2">version(version, list2)</a></td>
+  
+    <td class="summary_synopsis"><p>Macro for defining a version for a set of routes</p>
+</td>
+  
+</tr>
+
+        </table>
+      
+
+      
+
+      
+
+      
+        <div id="macros_details" class="details_list">
+          <h2>Macros</h2>
+          <div class="detail">
+  <div class="detail_header" id="any/3">
+    <span class="signature"><strong>any(route, handler, action)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(macro)</span>
+      <a href="#any/3" class="detail_link" title="Link to this macro">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Macro for defining <code class="inline">ANY</code> routes.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">route</code> - <code class="inline">String|List</code>
+</li>
+<li><code class="inline">handler</code> - <code class="inline">Atom</code>
+</li>
+<li><code class="inline">action</code> - <code class="inline">Atom</code>
+</li>
+</ul>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="delete/3">
+    <span class="signature"><strong>delete(route, handler, action)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(macro)</span>
+      <a href="#delete/3" class="detail_link" title="Link to this macro">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Macro for defining <code class="inline">DELETE</code> routes.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">route</code> - <code class="inline">String|List</code>
+</li>
+<li><code class="inline">handler</code> - <code class="inline">Atom</code>
+</li>
+<li><code class="inline">action</code> - <code class="inline">Atom</code>
+</li>
+</ul>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="get/3">
+    <span class="signature"><strong>get(route, handler, action)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(macro)</span>
+      <a href="#get/3" class="detail_link" title="Link to this macro">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Macro for defining <code class="inline">GET</code> routes.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">route</code> - <code class="inline">String|List</code>
+</li>
+<li><code class="inline">handler</code> - <code class="inline">Atom</code>
+</li>
+<li><code class="inline">action</code> - <code class="inline">Atom</code>
+</li>
+</ul>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="options/2">
+    <span class="signature"><strong>options(route, allows)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(macro)</span>
+      <a href="#options/2" class="detail_link" title="Link to this macro">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Macro for defining <code class="inline">OPTIONS</code> routes.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">route</code> - <code class="inline">String|List</code>
+</li>
+<li><code class="inline">allows</code> - <code class="inline">String</code>
+</li>
+</ul>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="patch/3">
+    <span class="signature"><strong>patch(route, handler, action)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(macro)</span>
+      <a href="#patch/3" class="detail_link" title="Link to this macro">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Macro for defining <code class="inline">PATCH</code> routes.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">route</code> - <code class="inline">String|List</code>
+</li>
+<li><code class="inline">handler</code> - <code class="inline">Atom</code>
+</li>
+<li><code class="inline">action</code> - <code class="inline">Atom</code>
+</li>
+</ul>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="post/3">
+    <span class="signature"><strong>post(route, handler, action)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(macro)</span>
+      <a href="#post/3" class="detail_link" title="Link to this macro">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Macro for defining <code class="inline">POST</code> routes.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">route</code> - <code class="inline">String|List</code>
+</li>
+<li><code class="inline">handler</code> - <code class="inline">Atom</code>
+</li>
+<li><code class="inline">action</code> - <code class="inline">Atom</code>
+</li>
+</ul>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="put/3">
+    <span class="signature"><strong>put(route, handler, action)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(macro)</span>
+      <a href="#put/3" class="detail_link" title="Link to this macro">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Macro for defining <code class="inline">PUT</code> routes.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">route</code> - <code class="inline">String|List</code>
+</li>
+<li><code class="inline">handler</code> - <code class="inline">Atom</code>
+</li>
+<li><code class="inline">action</code> - <code class="inline">Atom</code>
+</li>
+</ul>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="raw/4">
+    <span class="signature"><strong>raw(method, route, handler, action)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(macro)</span>
+      <a href="#raw/4" class="detail_link" title="Link to this macro">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Macro for defining routes for custom HTTP methods.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">method</code> - <code class="inline">Atom</code>
+</li>
+<li><code class="inline">route</code> - <code class="inline">String|List</code>
+</li>
+<li><code class="inline">handler</code> - <code class="inline">Atom</code>
+</li>
+<li><code class="inline">action</code> - <code class="inline">Atom</code>
+</li>
+</ul>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="resource/3">
+    <span class="signature"><strong>resource(resource, handler, opts \\ [])</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(macro)</span>
+      <a href="#resource/3" class="detail_link" title="Link to this macro">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Creates RESTful resource endpoints for a route/handler
+combination.</p>
+<h2>Example</h2>
+<pre><code>resource :users, Handlers.User</code></pre>
+<p>expands to</p>
+<pre><code>get,     &quot;/users&quot;,      Handlers.User, :index
+post,    &quot;/users&quot;,      Handlers.User, :create
+get,     &quot;/users/:id&quot;,  Handlers.User, :show
+put,     &quot;/users/:id&quot;,  Handlers.User, :update
+patch,   &quot;/users/:id&quot;,  Handlers.User, :patch
+delete,  &quot;/users/:id&quot;,  Handlers.User, :delete
+
+options, &quot;/users&quot;,      &quot;HEAD,GET,POST&quot;
+options, &quot;/users/:_id&quot;, &quot;HEAD,GET,PUT,PATCH,DELETE&quot;</code></pre>
+</div>
+  
+</div>
+<div class="detail">
+  <div class="detail_header" id="version/2">
+    <span class="signature"><strong>version(version, list2)</strong></span>
+    <div class="detail_header_links">
+      <span class="detail_type">(macro)</span>
+      <a href="#version/2" class="detail_link" title="Link to this macro">#</a>
+      <a class="to_top_link" href="#content" title="To the top of the page">&uarr;</a>
+    </div>
+  </div>
+  
+  <div class="docstring"><p>Macro for defining a version for a set of routes.</p>
+<h2>Arguments</h2>
+<ul>
+<li><code class="inline">version</code> - <code class="inline">String</code>
+</li>
+</ul>
+</div>
+  
+</div>
+
+        </div>
+      
+
+      
+    </div>
+  </body>
+</html>

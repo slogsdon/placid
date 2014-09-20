@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>README</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+    <script type="text/javascript" charset="utf-8">
+      relpath = '';
+      if (relpath != '') relpath += '/';
+    </script>
+
+    <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+  </head>
+
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+
+    <div id="content">
+      <div class="breadcrumbs">Placid v0.1.1-dev &rarr; <a href="readme.html">README</a></div>
+      <h1>Placid</h1>
+<p><a href="https://travis-ci.org/slogsdon/placid"><img src="https://img.shields.io/travis/slogsdon/placid.svg" alt="Build Status"/></a>
+<a href="https://coveralls.io/r/slogsdon/placid"><img src="https://img.shields.io/coveralls/slogsdon/placid.svg" alt="Coverage Status"/></a>
+<a href="https://hex.pm/packages/placid"><img src="http://img.shields.io/hexpm/v/placid.svg" alt="Hex.pm Version"/></a></p>
+<p>A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with Elixir.</p>
+<ul>
+<li><a href="#configuration">Configuration</a>
+</li>
+<li><a href="#routing">Routing</a>
+</li>
+<li><a href="#handlers">Handlers</a>
+</li>
+<li><a href="#cors">CORS</a>
+</li>
+<li><a href="#request-parsing">Request Parsing</a>
+</li>
+<li><a href="#rendering">Rendering</a>
+</li>
+<li><a href="#internationalization">Internationalization</a>
+</li>
+<li><a href="#todo">TODO</a>
+</li>
+</ul>
+<h2>Configuration</h2>
+<h3>HTTP</h3>
+<h4>Options</h4>
+<ul>
+<li><code class="inline">port</code> - Port to listen for HTTP requests.
+</li>
+</ul>
+<h3>HTTPS</h3>
+<p>By default, connecting to a Placid-based API will require all requests to be made over HTTPS, responding to HTTP requests with a <code class="inline">403 Forbidden</code>. If desired, the <code class="inline">https_only</code> option may be set allow HTTP requests to be served by your application. Take a look at the <a href="https://github.com/slogsdon/placid/blob/master/examples/kitchensink/config/config.exs#L12">kitchen sink example</a> to see this in action.</p>
+<h4>Options</h4>
+<ul>
+<li><code class="inline">certfile</code> - Path to the certificate file.
+</li>
+<li><code class="inline">keyfile</code> - Path to the certificate key file.
+</li>
+<li><code class="inline">otp_app</code> - If present, <code class="inline">certfile</code> and <code class="inline">keyfile</code> can be relative paths with respect to <code class="inline">otp_app</code>‘s <code class="inline">priv</code> directory.
+</li>
+<li><code class="inline">port</code> - Port to listen for HTTPS requests.
+</li>
+</ul>
+<blockquote><p>Note: Create a self-signed certificate for easy testing.</p>
+<pre><code class=""># Generate a keyfile
+$ openssl genrsa -out key.pem 2048
+
+# Create a CSR
+$ openssl req -new -key key.pem -out request.pem
+
+# Generate a certfile that expires in $NUM_DAYS
+$ openssl x509 -req -days $NUM_DAYS -in request.pem -signkey key.pem -out cert.pem</code></pre>
+</blockquote>
+<h2>Routing</h2>
+<pre><code class="elixir">defmodule Router do
+  use Placid.Router
+
+  # Define one of the versions of the API
+  # with a simple version number &quot;1&quot;
+  # or following semver &quot;1.0.0&quot;
+  # or date of release &quot;2014-09-06&quot;
+  version &quot;1&quot; do
+    # Define your routes here
+    get  &quot;/&quot;,               Handlers.V1.Pages, :index
+    get  &quot;/pages&quot;,          Handlers.V1.Pages, :create
+    post &quot;/pages&quot;,          Handlers.V1.Pages, :create
+    put  &quot;/pages/:page_id&quot; when id == 1,
+                            Handlers.V1.Pages, :update_only_one
+    get  &quot;/pages/:page_id&quot;, Handlers.V1.Pages, :show
+
+    # Auto-create a full set of routes for resources
+    #
+    resource :users,        Handlers.V1.User, arg: :user_id
+    #
+    # Generates:
+    #
+    # get     &quot;/users&quot;,           Handlers.V1.User, :index
+    # post    &quot;/users&quot;,           Handlers.V1.User, :create
+    # get     &quot;/users/:user_id&quot;,  Handlers.V1.User, :show
+    # put     &quot;/users/:user_id&quot;,  Handlers.V1.User, :update
+    # patch   &quot;/users/:user_id&quot;,  Handlers.V1.User, :patch
+    # delete  &quot;/users/:user_id&quot;,  Handlers.V1.User, :delete
+    #
+    # options &quot;/users&quot;,           &quot;HEAD,GET,POST&quot;
+    # options &quot;/users/:_user_id&quot;, &quot;HEAD,GET,PUT,PATCH,DELETE&quot;
+  end
+
+  # An updated version of the AP
+  version &quot;2&quot; do
+    get  &quot;/&quot;,               Handlers.V2.Pages,  :index
+    post &quot;/pages&quot;,          Handlers.V2.Pages,  :create
+    get  &quot;/pages/:page_id&quot;, Handlers.V2.Pages,  :show
+    put  &quot;/pages/:page_id&quot;, Handlers.V2.Pages,  :update
+
+    raw :trace, &quot;/trace&quot;,   Handlers.V2.Tracer, :trace
+
+    resource :users,        Handlers.V2.User
+    resource :groups,       Handlers.V2.Group
+  end
+end</code></pre>
+<p><code class="inline">get/3</code>, <code class="inline">post/3</code>, <code class="inline">put/3</code>, <code class="inline">patch/3</code>, <code class="inline">delete/3</code>, <code class="inline">options/2</code>, and <code class="inline">any/3</code> are already built-in as described. <code class="inline">resource</code> exists but will need modifications to create everything as noted.</p>
+<p><code class="inline">raw/4</code> allows for using custom HTTP methods, allowing your application to be HTTP spec compliant.</p>
+<p><code class="inline">version/2</code> will need to be created outright. Will allow requests to contained endpoints when version exists in either <code class="inline">Accepts</code> header or URL (which ever is defined in app config).</p>
+<p>Extra routes will need to be added for <code class="inline">*.json</code>, <code class="inline">*.xml</code>, etc. requests for optionally specifying desired content type without the use of the <code class="inline">Accepts</code> header. These should match parsing/rendering abilities of Placid.</p>
+<p>Should required/optional params be gathered for matching purposes? Only return a matched route when all required params are present?</p>
+<h2>Handlers</h2>
+<pre><code class="elixir">defmodule Handlers.V2.Pages do
+  use Placid.Handler
+
+  @doc &quot;&quot;&quot;
+  List all available pages
+  &quot;&quot;&quot;
+  def index(conn, []) do
+    # Somehow get our content
+    pages = Queries.Page.all
+    render conn, pages
+  end
+
+  @doc &quot;&quot;&quot;
+  Show an individual page
+  &quot;&quot;&quot;
+  def show(conn, args) do
+    result = case Integer.parse args[&quot;page_id&quot;] do
+        :error -&gt;
+          %Error{ id: &quot;no_page_id&quot;,
+                  message: &quot;A valid page_id is required.&quot; }
+        {i, _} -&gt;
+          Queries.Page.get i
+      end
+
+    render conn, result
+  end
+
+  @doc &quot;&quot;&quot;
+  Create a new page
+  &quot;&quot;&quot;
+  def create(conn, args) do
+    render conn, Queries.Page.create(args), status: :created
+  end
+
+  @doc &quot;&quot;&quot;
+  Update an individual page
+  &quot;&quot;&quot;
+  def update(conn, args) do
+    result = case Integer.parse args[&quot;page_id&quot;] do
+        :error -&gt;
+          %Error{ id: &quot;no_page_id&quot;,
+                  message: &quot;A valid page_id is requried.&quot; }
+        {i, _} -&gt;
+          Queries.Page.update i, args
+      end
+
+    render conn, result
+  end
+end</code></pre>
+<p>Actions in handler modules are responsible for handling a request once it has been routed. These actions typically generate a response, whether that be an error, a result, or a result set, so that it can be rendered to the client with the correct content type further up the stack.</p>
+<h2>CORS</h2>
+<p>Should have an option to respect Cross-origin resource sharing (CORS) when desired.</p>
+<p>Main response headers:</p>
+<ul>
+<li><code class="inline">Access-Control-Allow-Origin</code>: *|[list of allowed hosts]
+</li>
+<li><code class="inline">Access-Control-Allow-Credentials</code>: true (or ignore header)
+</li>
+<li><code class="inline">Access-Control-Allow-Methods</code>: [list of allowed methods]
+</li>
+<li><p><code class="inline">Access-Control-Allow-Headers</code>: [list of allowed beyond simple]</p>
+<ul>
+<li><code class="inline">Cache-Control</code>
+</li>
+<li><code class="inline">Content-Language</code>
+</li>
+<li><code class="inline">Content-Type</code>
+</li>
+<li><code class="inline">Expires</code>
+</li>
+<li><code class="inline">Last-Modified</code>
+</li>
+<li><code class="inline">Pragma</code>
+</li>
+</ul>
+</li>
+<li><code class="inline">Access-Control-Max-Age</code>: [# of seconds]
+</li>
+</ul>
+<p>Should check over the <a href="http://www.html5rocks.com/static/images/cors_server_flowchart.png">HTML5 Rocks CORS flowchart</a> as much as possible.</p>
+<p>Is <code class="inline">JSON-P</code> still a thing? Should it be supported? What happens with non-<code class="inline">GET</code> requests?</p>
+<h2>Request Parsing</h2>
+<p>Parsing request bodies from their content type to Elixir terms allows the handler actions to easily use that data in responding to the client. There should be one parser for each supported response content type, with an additional parser for form encoded data.</p>
+<p>Current Parsers:</p>
+<ul>
+<li>JSON - Encoded into standard map
+</li>
+<li>XML - Encoded into a list of maps, each containing a representation of XML nodes from the request body
+</li>
+<li>WWW-Encoded and Multipart form data - Encoded into a standard map
+</li>
+</ul>
+<h2>Rendering</h2>
+<p>Render layer serializes/encodes data based on the requested content type unless overridden for whatever reason in the response stack.</p>
+<p>Rendering engine behavior:</p>
+<pre><code class="elixir">defmodule Placid.Response.Rendering.Engine do
+  use Behaviour
+
+  @type data :: Keyword | Map | List
+
+  defcallback serialize(data, type, subtype) :: { :ok, binary } | :next
+end
+
+defmodule Placid.Response.Rendering.JSON do
+  @behaviour Placid.Response.Rendering.Engine
+
+  @types [&quot;application&quot;, &quot;text&quot;]
+
+  def serialize(data, type, &quot;json&quot;) when type in @types do
+    { :ok, data |&gt; Poison.encode!(string: true) }
+  end
+  def serialize(_, _, _), do: :next
+end</code></pre>
+<h2>Internationalization</h2>
+<p>I18n should always be considered when producing an API.</p>
+<p><a href="https://github.com/chrismccord/linguist">Linguist</a> is already a part of the project’s dependencies. Need to think of ways to make translations seemless as possible, similar to rendering.</p>
+<h2>TODO</h2>
+<ul>
+<li>[ ] Respects HTTP specifications (<a href="http://tools.ietf.org/pdf/rfc7230.pdf">7230</a>,
+<a href="http://tools.ietf.org/pdf/rfc7231.pdf">7231</a>,
+<a href="http://tools.ietf.org/pdf/rfc7232.pdf">7232</a>,
+<a href="http://tools.ietf.org/pdf/rfc7233.pdf">7233</a>,
+<a href="http://tools.ietf.org/pdf/rfc7234.pdf">7234</a>,
+<a href="http://tools.ietf.org/pdf/rfc7235.pdf">7235</a>)
+</li>
+<li><p>[ ] Compatibility with web frameworks via umbrella projects.</p>
+<ul>
+<li>[ ] Would be nice to offer tight integration when available, e.g. <code class="inline">Phoenix.Topic</code> notifications
+</li>
+</ul>
+</li>
+<li><p>[ ] Foundations</p>
+<ul>
+<li>[X] Prefer TLS. Require clients to use TLS when enabled in server
+</li>
+<li>[ ] Version with <code class="inline">Accept</code> header. Fallback to URL versioning
+</li>
+<li>[ ] Support caching with <code class="inline">Etags</code>
+</li>
+<li>[ ] Trace requests with Request-Ids
+</li>
+<li>[ ] Paginate with ranges. Mostly lies on end-developer, but we should provide facility to easily set headers
+</li>
+</ul>
+</li>
+<li><p>[ ] Requests</p>
+<ul>
+<li>[ ] Return appropriate status codes. Mostly lies on end-developer, but we should return them when appropriate
+</li>
+<li>[ ] Provide full resources where available
+</li>
+<li>[X] Accept serialized JSON/XML in request bodies
+</li>
+<li>[ ] Downcase paths and attributes
+</li>
+<li>[X] Support non-id dereferencing for convenience. No type checking occurs on parameters
+</li>
+<li>[ ] Minimize path nesting. Mostly lies on end-developer, but we should ensure generated route paths are as simple as posisble
+</li>
+</ul>
+</li>
+<li><p>[ ] Responses</p>
+<ul>
+<li>[ ] Provide resource (UU)IDs
+</li>
+<li>[ ] Provide standard timestamps
+</li>
+<li>[ ] Use UTC times formatted in ISO8601
+</li>
+<li>[ ] Nest foreign key relations
+</li>
+<li>[ ] Generate structured errors
+</li>
+<li>[ ] Show rate limit status
+</li>
+<li>[ ] Keep JSON minified in all responses
+</li>
+</ul>
+</li>
+<li><p>[ ] Artifacts</p>
+<ul>
+<li>[ ] Provide machine-readable JSON schema
+</li>
+<li>[ ] Provide human-readable docs
+</li>
+<li>[ ] Provide executable examples
+</li>
+<li>[ ] Describe stability
+</li>
+</ul>
+</li>
+</ul>
+<p>This list comes primarily from the <a href="https://github.com/interagent/http-api-design">HTTP API Design Guide</a> by <a href="https://github.com/interagent"><strong>@interagent</strong></a> and <a href="https://github.com/interagent/http-api-design/graphs/contributors">friends</a> but will be updated to fit the needs of the project.</p>
+<h2>License</h2>
+<p>Placid is released under the MIT License.</p>
+<p>See <a href="https://github.com/slogsdon/placid/blob/master/LICENSE">LICENSE</a> for details.</p>
+
+    </div>
+  </body>
+</html>
+

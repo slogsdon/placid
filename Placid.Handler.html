@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Placid.Handler</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" charset="utf-8" />
+
+    <script type="text/javascript" charset="utf-8">
+      relpath = '';
+      if (relpath != '') relpath += '/';
+    </script>
+
+    <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+    <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+  </head>
+
+  <body>
+    <script type="text/javascript" charset="utf-8">
+      if (window.top.frames.main) document.body.className = 'frames';
+    </script>
+
+    <div id="content">
+      <div class="breadcrumbs">Placid v0.1.1-dev &rarr; <a href="overview.html">Overview</a> &rarr; Placid &rarr; <a href="Placid.Handler.html">Handler</a></div>
+
+      <h1>
+        Placid.Handler
+        
+      </h1>
+
+      <ul class="summary_links">
+        
+        
+        
+        
+        
+      </ul>
+
+      
+        <div id="moduledoc" class="docstring">
+          <p>Handlers facilitate some separation of concerns for your application’s logic.</p>
+<p>All handler actions should have an arrity of 2, with the first argument being 
+a <code class="inline">Plug.Conn</code> representing the current connection and the second argument 
+being a <code class="inline">Keyword</code> list of any parameters captured in the route path.</p>
+<p><a href="Placid.Handler.html"><code class="inline">Placid.Handler</code></a> imports <code class="inline">Plug.Conn</code>, the <code class="inline">plug/1</code> and <code class="inline">plug/2</code> macros from
+<code class="inline">Plug.Builder</code>, <a href="Placid.Handler.html"><code class="inline">Placid.Handler</code></a>, and <a href="Placid.Response.Helpers.html"><code class="inline">Placid.Response.Helpers</code></a> for 
+convenience when creating handlers for your applications</p>
+<h2>Example</h2>
+<pre><code>defmodule Handlers.V2.Pages do
+  use Placid.Handler
+
+  @doc false
+  def index(conn, []) do
+    # Somehow get our content
+    pages = Queries.Page.all
+    render conn, pages
+  end
+
+  @doc false
+  def show(conn, args) do
+    result = case Integer.parse args[&quot;page_id&quot;] do
+        :error -&gt; 
+          %Error{ id: &quot;no_page_id&quot;,
+                  message: &quot;A valid page_id is required.&quot; }
+        {i, _} -&gt;
+          Queries.Page.get i
+      end
+
+    render conn, result
+  end
+
+  @doc false
+  def create(conn, args) do
+    render conn, Queries.Page.create args, status: :created
+  end
+
+  @doc false
+  def update(conn, args) do
+    result = case Integer.parse args[&quot;page_id&quot;] do
+        :error -&gt; 
+          %Error{ id: &quot;no_page_id&quot;,
+                  message: &quot;A valid page_id is requried.&quot; }
+        {i, _} -&gt;
+          Queries.Page.update i, args
+      end
+
+    render conn, result
+  end
+end</code></pre>
+
+        </div>
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+
+      
+    </div>
+  </body>
+</html>

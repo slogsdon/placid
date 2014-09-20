@@ -1,4 +1,0 @@
-KitchenSink
-===========
-
-** TODO: Add description **
