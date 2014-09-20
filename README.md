@@ -17,19 +17,32 @@ A REST toolkit for building highly-scalable and fault-tolerant HTTP APIs with El
 
 ## Configuration
 
+### HTTP
+
+#### Options
+
+- `port` - Port to listen for HTTP requests.
+
 ### HTTPS
 
 By default, connecting to a Placid-based API will require all requests to be made over HTTPS, responding to HTTP requests with a `403 Forbidden`. If desired, the `https_only` option may be set allow HTTP requests to be served by your application. Take a look at the [kitchen sink example](https://github.com/slogsdon/placid/blob/master/examples/kitchensink/config/config.exs#L12) to see this in action.
+
+#### Options
+
+- `certfile` - Path to the certificate file.
+- `keyfile` - Path to the certificate key file.
+- `otp_app` - If present, `certfile` and `keyfile` can be relative paths with respect to `otp_app`'s `priv` directory.
+- `port` - Port to listen for HTTPS requests.
 
 > Note: Create a self-signed certificate for easy testing.
 >
 > ```
 > # Generate a keyfile
 > $ openssl genrsa -out key.pem 2048
-> 
+>
 > # Create a CSR
 > $ openssl req -new -key key.pem -out request.pem
-> 
+>
 > # Generate a certfile that expires in $NUM_DAYS
 > $ openssl x509 -req -days $NUM_DAYS -in request.pem -signkey key.pem -out cert.pem
 > ```
@@ -44,7 +57,7 @@ defmodule Router do
   # with a simple version number "1"
   # or following semver "1.0.0"
   # or date of release "2014-09-06"
-  version "1" do 
+  version "1" do
     # Define your routes here
     get  "/",               Handlers.V1.Pages, :index
     get  "/pages",          Handlers.V1.Pages, :create
@@ -52,7 +65,7 @@ defmodule Router do
     put  "/pages/:page_id" when id == 1,
                             Handlers.V1.Pages, :update_only_one
     get  "/pages/:page_id", Handlers.V1.Pages, :show
-    
+
     # Auto-create a full set of routes for resources
     #
     resource :users,        Handlers.V1.User, arg: :user_id
@@ -71,14 +84,14 @@ defmodule Router do
   end
 
   # An updated version of the AP
-  version "2" do 
+  version "2" do
     get  "/",               Handlers.V2.Pages,  :index
     post "/pages",          Handlers.V2.Pages,  :create
     get  "/pages/:page_id", Handlers.V2.Pages,  :show
     put  "/pages/:page_id", Handlers.V2.Pages,  :update
 
     raw :trace, "/trace",   Handlers.V2.Tracer, :trace
-    
+
     resource :users,        Handlers.V2.User
     resource :groups,       Handlers.V2.Group
   end
@@ -115,7 +128,7 @@ defmodule Handlers.V2.Pages do
   """
   def show(conn, args) do
     result = case Integer.parse args["page_id"] do
-        :error -> 
+        :error ->
           %Error{ id: "no_page_id",
                   message: "A valid page_id is required." }
         {i, _} ->
@@ -137,7 +150,7 @@ defmodule Handlers.V2.Pages do
   """
   def update(conn, args) do
     result = case Integer.parse args["page_id"] do
-        :error -> 
+        :error ->
           %Error{ id: "no_page_id",
                   message: "A valid page_id is requried." }
         {i, _} ->
@@ -218,11 +231,11 @@ I18n should always be considered when producing an API.
 
 ## TODO
 
-- [ ] Respects HTTP specifications ([7230](http://tools.ietf.org/pdf/rfc7230.pdf), 
+- [ ] Respects HTTP specifications ([7230](http://tools.ietf.org/pdf/rfc7230.pdf),
     [7231](http://tools.ietf.org/pdf/rfc7231.pdf),
-    [7232](http://tools.ietf.org/pdf/rfc7232.pdf), 
-    [7233](http://tools.ietf.org/pdf/rfc7233.pdf), 
-    [7234](http://tools.ietf.org/pdf/rfc7234.pdf), 
+    [7232](http://tools.ietf.org/pdf/rfc7232.pdf),
+    [7233](http://tools.ietf.org/pdf/rfc7233.pdf),
+    [7234](http://tools.ietf.org/pdf/rfc7234.pdf),
     [7235](http://tools.ietf.org/pdf/rfc7235.pdf))
 - [ ] Compatibility with web frameworks via umbrella projects.
     - [ ] Would be nice to offer tight integration when available, e.g. `Phoenix.Topic` notifications
@@ -252,7 +265,7 @@ I18n should always be considered when producing an API.
     - [ ] Provide human-readable docs
     - [ ] Provide executable examples
     - [ ] Describe stability
-  
+
 This list comes primarily from the [HTTP API Design Guide](https://github.com/interagent/http-api-design) by [**@interagent**](https://github.com/interagent) and [friends](https://github.com/interagent/http-api-design/graphs/contributors) but will be updated to fit the needs of the project.
 
 ## License
