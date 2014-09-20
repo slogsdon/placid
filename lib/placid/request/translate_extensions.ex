@@ -1,5 +1,5 @@
 defmodule Placid.Request.TranslateExtensions do
-  @module false
+  @moduledoc false
   def init(opts), do: opts
 
   def call(conn, _opts) do
