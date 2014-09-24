@@ -1,4 +1,4 @@
-defmodule KitchenSink.Handlers.Main do
+defmodule KitchenSink.Handlers.V1.Main do
   use Placid.Handler
 
   plug :set_json, run: :before
