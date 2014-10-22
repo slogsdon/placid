@@ -71,8 +71,8 @@ defmodule Placid.Handler do
   @doc false
   defmacro __before_compile__(env) do
     plugs = Module.get_attribute(env.module, :plugs)
-            |> Enum.map(fn { plug, opts } ->
-              { plug, Keyword.put_new(opts, :run, :before) }
+            |> Enum.map(fn { plug, opts, guard } ->
+              { plug, Keyword.put_new(opts, :run, :before), guard }
             end)
 
     plug_stacks = build_plug_stacks plugs
@@ -114,10 +114,10 @@ defmodule Placid.Handler do
 
   defp build_calls_for(before_or_after, nil, plugs) do
     { conn, body } = plugs
-                  |> Enum.filter(fn { _, opts } ->
+                  |> Enum.filter(fn { _, opts, _ } ->
                     opts[:only] === nil
                   end)
-                  |> Enum.filter(fn { _, opts } ->
+                  |> Enum.filter(fn { _, opts, _ } ->
                     opts[:run] === before_or_after
                   end)
                   |> Plug.Builder.compile
@@ -130,12 +130,12 @@ defmodule Placid.Handler do
   end
   defp build_calls_for(before_or_after, action, plugs) do
     { conn, body } = plugs
-                  |> Enum.filter(fn { _, opts } ->
+                  |> Enum.filter(fn { _, opts, _ } ->
                     opts[:only] === nil || 
                     action === opts[:only] ||
                     action in opts[:only]
                   end)
-                  |> Enum.filter(fn { _, opts } ->
+                  |> Enum.filter(fn { _, opts, _ } ->
                     opts[:run] === before_or_after
                   end)
                   |> Plug.Builder.compile
@@ -149,10 +149,10 @@ defmodule Placid.Handler do
 
   defp get_only_actions(plugs) do
     plugs
-      |> Enum.filter(fn { _, opts } ->
+      |> Enum.filter(fn { _, opts, _ } ->
         opts[:only] != nil
       end)
-      |> Enum.flat_map(fn { _, opts } ->
+      |> Enum.flat_map(fn { _, opts, _ } ->
         opts[:only]
       end)
       |> Enum.uniq

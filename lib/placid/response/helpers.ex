@@ -195,8 +195,6 @@ defmodule Placid.Response.Helpers do
       |> send_resp_if_not_sent(code, reason)
   end
 
-  defp put_status(conn, status), do: %Plug.Conn{ conn | status: status }
-
   defp put_resp_header_if_not_sent(%Plug.Conn{ state: :sent } = conn, _, _) do
     conn
   end

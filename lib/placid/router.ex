@@ -78,6 +78,8 @@ defmodule Placid.Router do
       end
   """
 
+  import Placid.Router.Util
+
   @typep ast :: tuple
   @http_methods [ :get, :post, :put, :patch, :delete, :any ]
 
@@ -107,11 +109,11 @@ defmodule Placid.Router do
   defmacro __before_compile__(env) do
     # Plugs we want predefined but aren't necessary to be before
     # user-defined plugs
-    defaults = [ { Plug.Head, [] },
-                 { Plug.MethodOverride, [] },  
-                 { :copy_req_content_type, [] }, 
-                 { :match, [] },
-                 { :dispatch, [] } ]
+    defaults = [ { Plug.Head, [], true },
+                 { Plug.MethodOverride, [], true },  
+                 { :copy_req_content_type, [], true }, 
+                 { :match, [], true },
+                 { :dispatch, [], true } ]
     { conn, body } = Enum.reverse(defaults) ++ 
                      Module.get_attribute(env.module, :plugs)
                      |> Plug.Builder.compile
@@ -151,7 +153,7 @@ defmodule Placid.Router do
 
       def match(conn, _opts) do
         plug_route = __MODULE__.do_match(conn.method, conn.path_info)
-        Plug.Conn.assign_private(conn, :plug_route,plug_route)
+        Plug.Conn.put_private(conn, :plug_route, plug_route)
       end
 
       def dispatch(%Plug.Conn{ assigns: assigns } = conn, _opts) do
@@ -254,7 +256,7 @@ defmodule Placid.Router do
     options_routes =
       [ { "/#{ignore_args prepend_path}#{resource}",          [ index: :get, create: :post ] },
         { "/#{ignore_args prepend_path}#{resource}/:_#{arg}", [ show: :get, update: :put,
-                                     patch: :patch, delete: :delete ] } ]
+                                                                patch: :patch, delete: :delete ] } ]
 
     for { method, path, action } <- routes |> filter(allowed) do
       build_match method, path, handler, action, __CALLER__
@@ -262,7 +264,7 @@ defmodule Placid.Router do
       allows = methods
                 |> filter(allowed)
                 |> Enum.map(fn { _, m } ->
-                  Plug.Router.Utils.normalize_method(m)
+                  normalize_method(m)
                 end)
                 |> Enum.join(",")
       build_match :options, path, "HEAD,#{allows}", __CALLER__
@@ -297,6 +299,9 @@ defmodule Placid.Router do
 
   defp update_body_with_version({ :__block__, [], calls }, version) do
     { :__block__, [], calls |> Enum.map(&prepend_version(&1, "/" <> version)) }
+  end
+  defp update_body_with_version(item, version) when is_tuple(item) do
+    { :__block__, [], [item] |> Enum.map(&prepend_version(&1, "/" <> version)) }
   end
 
   defp prepend_version({ method, line, args }, version) do
@@ -387,9 +392,7 @@ defmodule Placid.Router do
   defp prep_match(method, route, caller) do
     { method, guard } = convert_methods(List.wrap(method))
     { path, guards }  = extract_path_and_guards(route, guard)
-    { vars, match }   = apply Plug.Router.Utils, 
-                              :build_match, 
-                              [ Macro.expand(path, caller) ]
+    { vars, match }   = build_spec(Macro.expand(path, caller))
     { method, guards, vars, match }
   end
 
@@ -399,7 +402,7 @@ defmodule Placid.Router do
     { quote(do: _), true }
   end
   defp convert_methods([method]) do
-    { Plug.Router.Utils.normalize_method(method), true }
+    { normalize_method(method), true }
   end
 
   # Extract the path and guards from the path.
