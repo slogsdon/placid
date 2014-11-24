@@ -3,7 +3,7 @@ defmodule Placid.Mixfile do
 
   def project do
     [ app: :placid,
-      version: "0.1.1",
+      version: "0.1.2-dev",
       elixir: ">= 1.0.0-rc1",
       deps: deps,
       name: "Placid",
@@ -14,7 +14,8 @@ defmodule Placid.Mixfile do
   end
 
   def application do
-    [ applications: [ :logger ],
+    [ applications: [ :logger, :poison, :cowboy, :plug,
+                      :xml_builder, :linguist ],
       mod: { Placid, [] } ]
   end
 
