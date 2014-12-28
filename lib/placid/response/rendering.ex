@@ -68,12 +68,12 @@ defmodule Placid.Response.Rendering do
   `Plug.Conn`
   """
   def serialize_to_body(%Plug.Conn{ state: state } = conn, data, content_type) when state in @unsent do
-    case Plug.Conn.Utils.content_type content_type do
+    case Plug.Conn.Utils.media_type content_type do
       { :ok, type, subtype, _params } ->
         engines = Application.get_env(:placid, :rendering_engines, @engines)
         body = reduce engines, data, type, subtype
         %Plug.Conn{ conn | resp_body: body, state: :set }
-      :error -> 
+      :error ->
         raise UnsupportedResponseTypeError, message: "unsupported media type #{content_type}"
     end
   end
