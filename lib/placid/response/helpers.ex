@@ -112,7 +112,6 @@ defmodule Placid.Response.Helpers do
     conn = Rendering.serialize_to_body(conn, data, content_type)
 
     conn
-      |> put_resp_content_type_if_not_sent(content_type)
       |> put_status(code)
       |> send_resp_if_not_sent
   end
@@ -200,13 +199,6 @@ defmodule Placid.Response.Helpers do
   end
   defp put_resp_header_if_not_sent(conn, key, value) do
     conn |> put_resp_header(key, value)
-  end
-
-  defp put_resp_content_type_if_not_sent(%Plug.Conn{ state: :sent } = conn, _) do
-    conn
-  end
-  defp put_resp_content_type_if_not_sent(conn, resp_content_type) do
-    conn |> put_resp_content_type(resp_content_type)
   end
 
   defp send_resp_if_not_sent(%Plug.Conn{ state: :sent } = conn) do

@@ -30,18 +30,25 @@ defmodule Placid.Response.Rendering.Engines.XML do
   end
 
   defp get_name(module) do
-    module 
-      |> Module.split 
-      |> Enum.reverse 
+    module
+      |> Module.split
+      |> Enum.reverse
       |> hd
   end
 
   defp normalize(data) when is_map(data) do
-    data 
-      |> Map.delete(:__attr__) 
+    data
+      |> Map.delete(:__attr__)
       |> Map.delete(:__struct__)
       |> Enum.map(fn pair ->
         xmlify pair
       end)
   end
+
+  def normalize_content_type("*", "xml"), do:         {"application","xml"}
+  def normalize_content_type("application", "*"), do: {"application","xml"}
+  def normalize_content_type("text", "*"), do:        {"text","xml"}
+  def normalize_content_type("*", "*"), do:           {"application","xml"}
+  def normalize_content_type(type, subtype), do:      {type, subtype}
+
 end

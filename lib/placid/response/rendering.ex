@@ -67,25 +67,52 @@ defmodule Placid.Response.Rendering do
 
   `Plug.Conn`
   """
-  def serialize_to_body(%Plug.Conn{ state: state } = conn, data, content_type) when state in @unsent do
-    case Plug.Conn.Utils.media_type content_type do
-      { :ok, type, subtype, _params } ->
-        engines = Application.get_env(:placid, :rendering_engines, @engines)
-        body = reduce engines, data, type, subtype
-        %Plug.Conn{ conn | resp_body: body, state: :set }
-      :error ->
-        raise UnsupportedResponseTypeError, message: "unsupported media type #{content_type}"
+  def serialize_to_body(%Plug.Conn{ state: state } = conn, data, accept) when state in @unsent do
+    engines = Application.get_env(:placid, :rendering_engines, @engines)
+    # Extract media types
+    resp = Plug.Conn.Utils.list(accept) |> Enum.map(&Plug.Conn.Utils.media_type/1) |>
+    # Remove errors
+    Enum.filter(fn :error -> false
+                    _ -> true end) |>
+    # Sort by quality
+    Enum.sort_by(fn {:ok, _type, _subtype, %{"q" => q}} -> String.to_float(q)
+                    {:ok, _type, _subtype, %{}} -> 1
+                    :error -> 0
+    end) |>
+    # Descending order
+    Enum.reverse |>
+    # Attempt rendering with a matching engine
+    reduce_types(data, engines)
+    if is_nil(resp) do
+      raise UnsupportedResponseTypeError, message: "unsupported media type #{accept}"
+    else
+      {type, subtype, body} = resp
+      %Plug.Conn{ conn | resp_body: body, state: :set } |> Plug.Conn.put_resp_content_type("#{type}/#{subtype}")
     end
   end
   def serialize_to_body(conn, _data, _ct), do: conn
 
+  defp reduce_types([{:ok, type, subtype, _params}|types], data, engines) do
+    case reduce(engines, data, type, subtype) do
+      nil ->
+        reduce_types(types, data, engines)
+      {_type, _subtype_, _body} = resp ->
+        resp
+    end
+  end
+  defp reduce_types([], _data, _engines) do
+    nil
+  end
+
   defp reduce([engine|engines], data, type, subtype) do
     case engine.serialize(data, type, subtype) do
-      { :ok, body } -> body
+      { :ok, body } ->
+        {type, subtype} = engine.normalize_content_type(type, subtype)
+        {type, subtype, body}
       :next -> reduce engines, data, type, subtype
     end
   end
-  defp reduce([], _, type, subtype) do
-    raise UnsupportedResponseTypeError, message: "unsupported media type #{type}/#{subtype}"
+  defp reduce([], _, _type, _subtype) do
+    nil
   end
 end
