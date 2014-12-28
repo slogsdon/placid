@@ -21,7 +21,7 @@ defmodule Placid.Mixfile do
 
   defp deps do
     [ { :cowboy, "~> 1.0.0" },
-      { :plug, "~> 0.8.1" },
+      { :plug, "~> 0.9.0" },
       { :linguist, "~> 0.1.2" },
       { :poison, "~> 1.2.0" },
       { :xml_builder, "~> 0.0.5" },

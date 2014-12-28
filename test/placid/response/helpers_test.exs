@@ -1,5 +1,5 @@
 defmodule Placid.Response.HelpersTest do
-  use ExUnit.Case, async: false 
+  use ExUnit.Case, async: false
   use Plug.Test
 
   import Placid.Response.Helpers
@@ -126,11 +126,11 @@ defmodule Placid.Response.HelpersTest do
 
   test "resp already sent on set content-type" do
     headers = [{"accept", "text/json"}]
-    conn = conn(:get, "/", nil, headers: headers)
+    assert_raise Plug.Conn.AlreadySentError, fn ->
+    conn(:get, "/", nil, headers: headers)
       |> Map.put(:state, :sent)
       |> render([])
-
-    assert conn.state === :sent
+    end
   end
 
   test "resp already sent on set header" do
