@@ -23,6 +23,14 @@ defmodule Placid.Response.RenderingTest do
       end)
   end
 
+  test "takes media type lists" do
+    headers = [{"accept", "application/xml; q=0.05, application/json, */*; q=0.01"}]
+    conn = conn(:get, "/json_list", nil, headers: headers)
+      |> Placid.Response.RenderingTest.Router.call([])
+
+    assert get_resp_header(conn, "content-type") === ["application/json; charset=utf-8"]
+  end
+
   test "encodes a json response with list" do
     headers = [{"accept", "application/json"}]
     conn = conn(:get, "/json_list", nil, headers: headers)
