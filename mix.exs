@@ -3,7 +3,7 @@ defmodule Placid.Mixfile do
 
   def project do
     [ app: :placid,
-      version: "0.1.3",
+      version: "0.1.4",
       elixir: ">= 1.0.0-rc1",
       deps: deps,
       name: "Placid",
@@ -22,9 +22,9 @@ defmodule Placid.Mixfile do
   defp deps do
     [ { :cowboy, "~> 1.0.0" },
       { :plug, "~> 0.9.0" },
-      { :http_router, "~> 0.0.3" },
+      { :http_router, "~> 0.0.4" },
       { :linguist, "~> 0.1.2" },
-      { :poison, "~> 1.2.0" },
+      { :poison, "~> 1.3.0" },
       { :xml_builder, "~> 0.0.5" },
       { :earmark, "~> 0.1.10", only: :docs },
       { :ex_doc, "~> 0.6.1", only: :docs },
