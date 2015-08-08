@@ -30,6 +30,6 @@ defmodule KitchenSink.Handlers.V1.Main do
   end
 
   def set_private(conn, _) do
-    conn |> assign_private(:id, 2)
+    conn |> put_private(:id, 2)
   end
 end

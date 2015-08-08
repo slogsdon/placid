@@ -2,6 +2,11 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
+config :logger, :console,
+  level: :info,
+  format: "$date $time [$level] $metadata$message\n",
+  metadata: [:user_id]
+
 # Placid doesn't make any assumptions regarding naming
 # conventions, so we need to tell it which module is our
 # router.

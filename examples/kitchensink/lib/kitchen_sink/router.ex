@@ -1,6 +1,7 @@
 defmodule KitchenSink.Router do
   use Placid.Router
   alias KitchenSink.Handlers.V1
+  plug Plug.Logger
 
   version "v1" do
     get "/",     V1.Main, :index

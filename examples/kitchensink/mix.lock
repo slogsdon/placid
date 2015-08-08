@@ -1,8 +1,9 @@
-%{"cowboy": {:package, "1.0.0"},
-  "cowlib": {:package, "1.0.0"},
-  "linguist": {:package, "0.1.2"},
+%{"cowboy": {:hex, :cowboy, "1.0.2"},
+  "cowlib": {:hex, :cowlib, "1.0.1"},
+  "http_router": {:hex, :http_router, "0.0.7"},
+  "linguist": {:hex, :linguist, "0.1.5"},
   "placid": {:git, "git://github.com/slogsdon/placid.git", "a07b3be77a841fc8b18b9f5046c48cb89aa68844", []},
-  "plug": {:package, "0.7.0"},
-  "poison": {:package, "1.1.1"},
-  "ranch": {:package, "1.0.0"},
-  "xml_builder": {:package, "0.0.5"}}
+  "plug": {:hex, :plug, "0.14.0"},
+  "poison": {:hex, :poison, "1.4.0"},
+  "ranch": {:hex, :ranch, "1.1.0"},
+  "xml_builder": {:hex, :xml_builder, "0.0.6"}}
