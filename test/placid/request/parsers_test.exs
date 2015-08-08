@@ -1,5 +1,6 @@
 defmodule Placid.Request.ParsersTest do
   use ExUnit.Case, async: true
+  import Plug.Conn
   import Plug.Test
 
   @parsers [ Placid.Request.Parsers.JSON,
@@ -11,24 +12,27 @@ defmodule Placid.Request.ParsersTest do
   end
 
   test "parses json encoded bodies" do
-    headers = [{"content-type", "application/json"}]
-    conn = parse(conn(:post, "/post", "{\"foo\": \"baz\"}", headers: headers))
+    conn = conn(:post, "/post", "{\"foo\": \"baz\"}")
+      |> put_req_header("content-type", "application/json")
+      |> parse
 
     assert conn.params["foo"] === "baz"
   end
 
   test "json parser errors when body too large" do
     exception = assert_raise Plug.Parsers.RequestTooLargeError, fn ->
-      headers = [{"content-type", "application/json"}]
-      parse(conn(:post, "/post", "{\"foo\": \"baz\"}", headers: headers), length: 5)
+      conn(:post, "/post", "{\"foo\": \"baz\"}")
+        |> put_req_header("content-type", "application/json")
+        |> parse(length: 5)
     end
 
     assert Plug.Exception.status(exception) === 413
   end
 
   test "parses xml encoded bodies" do
-    headers = [{"content-type", "application/xml"}]
-    conn = parse(conn(:post, "/post", "<foo>baz</foo>", headers: headers))
+    conn = conn(:post, "/post", "<foo>baz</foo>")
+      |> put_req_header("content-type", "application/xml")
+      |> parse
     foo = conn.params.xml
           |> Enum.find(fn node ->
             node.name === :foo
@@ -38,8 +42,9 @@ defmodule Placid.Request.ParsersTest do
   end
 
   test "parses xml encoded bodies with xml nodes" do
-    headers = [{"content-type", "application/xml"}]
-    conn = parse(conn(:post, "/post", "<foo><bar/><baz/></foo>", headers: headers))
+    conn = conn(:post, "/post", "<foo><bar/><baz/></foo>")
+      |> put_req_header("content-type", "application/xml")
+      |> parse
     foo = conn.params.xml
           |> Enum.find(fn node ->
             node.name === :foo
@@ -51,8 +56,9 @@ defmodule Placid.Request.ParsersTest do
   end
 
   test "parses xml encoded bodies with attributes" do
-    headers = [{"content-type", "application/xml"}]
-    conn = parse(conn(:post, "/post", "<foo bar=\"baz\" id=\"1\" />", headers: headers))
+    conn = conn(:post, "/post", "<foo bar=\"baz\" id=\"1\" />")
+      |> put_req_header("content-type", "application/xml")
+      |> parse
     foo = conn.params.xml
           |> Enum.find(fn node ->
             node.name === :foo
@@ -64,10 +70,11 @@ defmodule Placid.Request.ParsersTest do
 
   test "xml parser errors when body too large" do
     exception = assert_raise Plug.Parsers.RequestTooLargeError, fn ->
-      headers = [{"content-type", "application/xml"}]
-      parse(conn(:post, "/post", "<foo>baz</foo>", headers: headers), length: 5)
+      conn(:post, "/post", "<foo>baz</foo>")
+        |> put_req_header("content-type", "application/xml")
+        |> parse(length: 5)
     end
-    
+
     assert Plug.Exception.status(exception) === 413
   end
 end

@@ -33,7 +33,7 @@ defmodule Placid.Response.HelpersTest do
   end
 
   test "render/3 without opts and fallback to default content-type" do
-    conn = conn(:get, "/", nil)
+    conn = conn(:get, "/")
       |> Map.put(:state, :set)
       |> render([])
 
@@ -42,8 +42,8 @@ defmodule Placid.Response.HelpersTest do
   end
 
   test "render/3 without opts" do
-    headers = [{"accept", "text/json"}]
-    conn = conn(:get, "/", nil, headers: headers)
+    conn = conn(:get, "/")
+      |> put_req_header("accept", "text/json")
       |> Map.put(:state, :set)
       |> render([])
 
@@ -52,8 +52,8 @@ defmodule Placid.Response.HelpersTest do
   end
 
   test "render/3 with opts" do
-    headers = [{"accept", "text/json"}]
-    conn = conn(:get, "/", nil, headers: headers)
+    conn = conn(:get, "/")
+      |> put_req_header("accept", "text/json")
       |> Map.put(:state, :set)
       |> render([], [content_type: "application/json"])
 
@@ -125,11 +125,11 @@ defmodule Placid.Response.HelpersTest do
   end
 
   test "resp already sent on set content-type" do
-    headers = [{"accept", "text/json"}]
     assert_raise Plug.Conn.AlreadySentError, fn ->
-    conn(:get, "/", nil, headers: headers)
-      |> Map.put(:state, :sent)
-      |> render([])
+      conn(:get, "/")
+        |> put_req_header("accept", "text/json")
+        |> Map.put(:state, :sent)
+        |> render([])
     end
   end
 

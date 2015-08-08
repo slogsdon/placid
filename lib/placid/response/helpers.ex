@@ -1,6 +1,6 @@
 defmodule Placid.Response.Helpers do
   @moduledoc """
-  Placid bundles these response helpers with handlers to 
+  Placid bundles these response helpers with handlers to
   assist in sending a response.
 
   #### Example
@@ -47,7 +47,7 @@ defmodule Placid.Response.Helpers do
   def status(conn, status_code) when is_integer(status_code)
                                 when is_atom(status_code) do
     %StatusCode{ code: code } = status_code |> StatusCode.find
-    %Plug.Conn{ conn | status: code, 
+    %Plug.Conn{ conn | status: code,
                        state: :set }
   end
 
@@ -65,7 +65,7 @@ defmodule Placid.Response.Helpers do
   """
   @spec headers(Plug.Conn.t, Plug.Conn.headers) :: Plug.Conn.t
   def headers(conn, headers) do
-    %Plug.Conn{ conn | resp_headers: headers, 
+    %Plug.Conn{ conn | resp_headers: headers,
                        state: :set }
   end
 
@@ -188,9 +188,9 @@ defmodule Placid.Response.Helpers do
   @spec redirect(Plug.Conn.t, binary, Keyword.t) :: Plug.Conn.t
   def redirect(conn, location, opts \\ []) do
     opts = [ status: 302 ] |> Keyword.merge opts
-    %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCode.find   
+    %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCode.find
     conn
-      |> put_resp_header_if_not_sent("Location", location)
+      |> put_resp_header_if_not_sent("location", location)
       |> send_resp_if_not_sent(code, reason)
   end
 

@@ -1,14 +1,15 @@
 defmodule Placid.Response.RenderingTest do
   use ExUnit.Case, async: true
   use Plug.Test
+  import Plug.Conn
   alias Placid.Response.Rendering.UnsupportedResponseTypeError
 
   test "raises UnsupportedResponseTypeError when invalid content-type" do
     type = "json"
     message = "unsupported media type #{type}"
     assert_raise(UnsupportedResponseTypeError, message, fn ->
-        headers = [{"accept", type}]
-        conn(:get, "/json_list", nil, headers: headers)
+        conn(:get, "/json_list")
+          |> put_req_header("accept", type)
           |> Placid.Response.RenderingTest.Router.call([])
       end)
   end
@@ -17,23 +18,23 @@ defmodule Placid.Response.RenderingTest do
     type = "text/html"
     message = "unsupported media type #{type}"
     assert_raise(UnsupportedResponseTypeError, message, fn ->
-        headers = [{"accept", type}]
-        conn(:get, "/json_list", nil, headers: headers)
+        conn(:get, "/json_list")
+          |> put_req_header("accept", type)
           |> Placid.Response.RenderingTest.Router.call([])
       end)
   end
 
   test "takes media type lists" do
-    headers = [{"accept", "application/xml; q=0.05, application/json, */*; q=0.01"}]
-    conn = conn(:get, "/json_list", nil, headers: headers)
+    conn = conn(:get, "/json_list")
+      |> put_req_header("accept", "application/xml; q=0.05, application/json, */*; q=0.01")
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/json; charset=utf-8"]
   end
 
   test "encodes a json response with list" do
-    headers = [{"accept", "application/json"}]
-    conn = conn(:get, "/json_list", nil, headers: headers)
+    conn = conn(:get, "/json_list")
+      |> put_req_header("accept", "application/json")
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/json; charset=utf-8"]
@@ -42,8 +43,8 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a json response with map" do
-    headers = [{"accept", "application/json"}]
-    conn = conn(:get, "/json_map", nil, headers: headers)
+    conn = conn(:get, "/json_map")
+      |> put_req_header("accept", "application/json")
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/json; charset=utf-8"]
@@ -51,8 +52,8 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a json response with struct" do
-    headers = [{"accept", "application/json"}]
-    conn = conn(:get, "/json_struct", nil, headers: headers)
+    conn = conn(:get, "/json_struct")
+      |> put_req_header("accept", "application/json")
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/json; charset=utf-8"]
@@ -60,8 +61,8 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a xml response with list" do
-    headers = [{"accept", "application/xml"}]
-    conn = conn(:get, "/xml_list", nil, headers: headers)
+    conn = conn(:get, "/xml_list")
+      |> put_req_header("accept", "application/xml")
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/xml; charset=utf-8"]
@@ -69,8 +70,8 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a xml response with map" do
-    headers = [{"accept", "application/xml"}]
-    conn = conn(:get, "/xml_map", nil, headers: headers)
+    conn = conn(:get, "/xml_map")
+      |> put_req_header("accept", "application/xml")
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/xml; charset=utf-8"]
@@ -78,8 +79,8 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a xml response with map and attrs" do
-    headers = [{"accept", "application/xml"}]
-    conn = conn(:get, "/xml_map_with_attrs", nil, headers: headers)
+    conn = conn(:get, "/xml_map_with_attrs")
+      |> put_req_header("accept", "application/xml")
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/xml; charset=utf-8"]
@@ -87,8 +88,8 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a xml response with struct" do
-    headers = [{"accept", "application/xml"}]
-    conn = conn(:get, "/xml_struct", nil, headers: headers)
+    conn = conn(:get, "/xml_struct")
+      |> put_req_header("accept", "application/xml")
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/xml; charset=utf-8"]
@@ -96,8 +97,8 @@ defmodule Placid.Response.RenderingTest do
   end
 
   test "encodes a xml response with struct and attrs" do
-    headers = [{"accept", "application/xml"}]
-    conn = conn(:get, "/xml_struct_with_attrs", nil, headers: headers)
+    conn = conn(:get, "/xml_struct_with_attrs")
+      |> put_req_header("accept", "application/xml")
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/xml; charset=utf-8"]
@@ -113,10 +114,10 @@ defmodule Placid.Response.RenderingTest do
     get "/json_struct", Handler, :json_struct
     get "/xml_list",    Handler, :xml_list
     get "/xml_map",     Handler, :xml_map
-    get "/xml_map_with_attrs",     
+    get "/xml_map_with_attrs",
                         Handler, :xml_map_with_attrs
     get "/xml_struct",  Handler, :xml_struct
-    get "/xml_struct_with_attrs",  
+    get "/xml_struct_with_attrs",
                         Handler, :xml_struct_with_attrs
   end
 

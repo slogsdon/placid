@@ -2,12 +2,12 @@ defmodule Placid.Handler do
   @moduledoc """
   Handlers facilitate some separation of concerns for your application's logic.
 
-  All handler actions should have an arrity of 2, with the first argument being 
-  a `Plug.Conn` representing the current connection and the second argument 
+  All handler actions should have an arrity of 2, with the first argument being
+  a `Plug.Conn` representing the current connection and the second argument
   being a `Keyword` list of any parameters captured in the route path.
 
   `Placid.Handler` imports `Plug.Conn`, the `plug/1` and `plug/2` macros from
-  `Plug.Builder`, `Placid.Handler`, and `Placid.Response.Helpers` for 
+  `Plug.Builder`, `Placid.Handler`, and `Placid.Response.Helpers` for
   convenience when creating handlers for your applications
 
   ## Example
@@ -25,7 +25,7 @@ defmodule Placid.Handler do
         @doc false
         def show(conn, args) do
           result = case Integer.parse args["page_id"] do
-              :error -> 
+              :error ->
                 %Error{ id: "no_page_id",
                         message: "A valid page_id is required." }
               {i, _} ->
@@ -43,7 +43,7 @@ defmodule Placid.Handler do
         @doc false
         def update(conn, args) do
           result = case Integer.parse args["page_id"] do
-              :error -> 
+              :error ->
                 %Error{ id: "no_page_id",
                         message: "A valid page_id is requried." }
               {i, _} ->
@@ -75,7 +75,7 @@ defmodule Placid.Handler do
               { plug, Keyword.put_new(opts, :run, :before), guard }
             end)
 
-    plug_stacks = build_plug_stacks plugs
+    plug_stacks = build_plug_stacks env, plugs
 
     quote do
       def init(opts) do
@@ -94,17 +94,17 @@ defmodule Placid.Handler do
     end
   end
 
-  defp build_plug_stacks(plugs) do
+  defp build_plug_stacks(env, plugs) do
     only_actions = get_only_actions plugs
 
     Enum.map only_actions ++ [nil], fn action ->
-      build_plug_stacks_for action, plugs
+      build_plug_stacks_for action, env, plugs
     end
   end
 
-  defp build_plug_stacks_for(action, plugs) do
-    before_body = build_calls_for(:before, action, plugs)
-    after_body = build_calls_for(:after, action, plugs)
+  defp build_plug_stacks_for(action, env, plugs) do
+    before_body = build_calls_for(:before, action, env, plugs)
+    after_body = build_calls_for(:after, action, env, plugs)
 
     quote do
       unquote(before_body)
@@ -112,15 +112,15 @@ defmodule Placid.Handler do
     end
   end
 
-  defp build_calls_for(before_or_after, nil, plugs) do
-    { conn, body } = plugs
-                  |> Enum.filter(fn { _, opts, _ } ->
-                    opts[:only] === nil
-                  end)
-                  |> Enum.filter(fn { _, opts, _ } ->
-                    opts[:run] === before_or_after
-                  end)
-                  |> Plug.Builder.compile
+  defp build_calls_for(before_or_after, nil, env, plugs) do
+    plugs = plugs
+              |> Enum.filter(fn { _, opts, _ } ->
+                opts[:only] === nil
+              end)
+              |> Enum.filter(fn { _, opts, _ } ->
+                opts[:run] === before_or_after
+              end)
+    { conn, body } = env |> Plug.Builder.compile(plugs, [])
 
     quote do
       defp do_call(unquote(conn), unquote(before_or_after), _) do
@@ -128,17 +128,17 @@ defmodule Placid.Handler do
       end
     end
   end
-  defp build_calls_for(before_or_after, action, plugs) do
-    { conn, body } = plugs
-                  |> Enum.filter(fn { _, opts, _ } ->
-                    opts[:only] === nil || 
-                    action === opts[:only] ||
-                    action in opts[:only]
-                  end)
-                  |> Enum.filter(fn { _, opts, _ } ->
-                    opts[:run] === before_or_after
-                  end)
-                  |> Plug.Builder.compile
+  defp build_calls_for(before_or_after, action, env, plugs) do
+    plugs = plugs
+              |> Enum.filter(fn { _, opts, _ } ->
+                opts[:only] === nil ||
+                action === opts[:only] ||
+                action in opts[:only]
+              end)
+              |> Enum.filter(fn { _, opts, _ } ->
+                opts[:run] === before_or_after
+              end)
+    { conn, body } = env |> Plug.Builder.compile(plugs, [])
 
     quote do
       defp do_call(unquote(conn), unquote(before_or_after), unquote(action)) do
