@@ -130,7 +130,7 @@ defmodule Placid.Response.Helpers do
   """
   @spec halt!(Plug.Conn.t, Keyword.t) :: Plug.Conn.t
   def halt!(conn, opts \\ []) do
-    opts = [ status: 401] |> Keyword.merge opts
+    opts = [ status: 401] |> Keyword.merge(opts)
     %StatusCode{ code: code, reason: reason } = opts[:status] |> StatusCode.find
     conn
       |> send_resp_if_not_sent(code, reason)
@@ -187,7 +187,7 @@ defmodule Placid.Response.Helpers do
   """
   @spec redirect(Plug.Conn.t, binary, Keyword.t) :: Plug.Conn.t
   def redirect(conn, location, opts \\ []) do
-    opts = [ status: 302 ] |> Keyword.merge opts
+    opts = [ status: 302 ] |> Keyword.merge(opts)
     %StatusCode{code: code, reason: reason} = opts[:status] |> StatusCode.find
     conn
       |> put_resp_header_if_not_sent("location", location)

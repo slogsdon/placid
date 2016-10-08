@@ -3,13 +3,14 @@ defmodule Placid.Mixfile do
 
   def project do
     [ app: :placid,
-      version: "0.1.5-dev",
-      elixir: ">= 1.0.0-rc1",
+      version: "0.2.0",
+      elixir: ">= 1.0.0",
       deps: deps,
       name: "Placid",
       package: package,
       description: description,
-      docs: [ readme: "README.md", main: "README" ],
+      docs: [ extras: [ "README.md" ],
+	      main: "readme" ],
       test_coverage: [ tool: ExCoveralls ] ]
   end
 
@@ -20,16 +21,16 @@ defmodule Placid.Mixfile do
   end
 
   defp deps do
-    [ { :cowboy, "~> 1.0.2" },
-      { :plug, "~> 0.14.0" },
-      { :http_router, "~> 0.0.7" },
-      { :linguist, "~> 0.1.5" },
-      { :poison, "~> 1.4.0" },
-      { :xml_builder, "~> 0.0.5" },
-      { :earmark, "~> 0.1.17", only: :docs },
-      { :ex_doc, "~> 0.7.3", only: :docs },
-      { :excoveralls, "~> 0.3.11", only: :test },
-      { :dialyze, "~> 0.2.0", only: :test } ]
+    [ { :cowboy, "~> 1.0" },
+      { :plug, "~> 1.0" },
+      { :http_router, "~> 0.0" },
+      { :linguist, "~> 0.1" },
+      { :poison, "~> 3.0" },
+      { :xml_builder, "~> 0.0" },
+      { :earmark, "~> 1.0", only: :dev },
+      { :ex_doc, "~> 0.14", only: :dev },
+      { :excoveralls, "~> 0.5", only: :test },
+      { :dialyze, "~> 0.2", only: :test } ]
   end
 
   defp description do
@@ -39,7 +40,7 @@ defmodule Placid.Mixfile do
   end
 
   defp package do
-    %{ contributors: [ "Shane Logsdon" ],
+    %{ maintainers: [ "Shane Logsdon" ],
        licenses: [ "MIT" ],
        links: %{ "GitHub" => "https://github.com/slogsdon/placid" } }
   end

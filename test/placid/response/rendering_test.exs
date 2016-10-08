@@ -66,7 +66,7 @@ defmodule Placid.Response.RenderingTest do
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/xml; charset=utf-8"]
-    assert conn.resp_body === "<?xml version=\"1.0\">\n<items>\n\t<item>\n\t\t<id>1</id>\n\t\t<name>bob</name>\n\t</item>\n\t<item>\n\t\t<id>2</id>\n\t\t<name>john</name>\n\t</item>\n</items>"
+    assert conn.resp_body === "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<items>\n\t<item>\n\t\t<id>1</id>\n\t\t<name>bob</name>\n\t</item>\n\t<item>\n\t\t<id>2</id>\n\t\t<name>john</name>\n\t</item>\n</items>"
   end
 
   test "encodes a xml response with map" do
@@ -75,7 +75,7 @@ defmodule Placid.Response.RenderingTest do
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/xml; charset=utf-8"]
-    assert conn.resp_body === "<?xml version=\"1.0\">\n<item>\n\t<id>1</id>\n\t<name>bob</name>\n</item>"
+    assert conn.resp_body === "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<item>\n\t<id>1</id>\n\t<name>bob</name>\n</item>"
   end
 
   test "encodes a xml response with map and attrs" do
@@ -84,7 +84,7 @@ defmodule Placid.Response.RenderingTest do
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/xml; charset=utf-8"]
-    assert conn.resp_body === "<?xml version=\"1.0\">\n<item status=\"new\">\n\t<id>1</id>\n\t<name>bob</name>\n</item>"
+    assert conn.resp_body === "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<item status=\"new\">\n\t<id>1</id>\n\t<name>bob</name>\n</item>"
   end
 
   test "encodes a xml response with struct" do
@@ -93,7 +93,7 @@ defmodule Placid.Response.RenderingTest do
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/xml; charset=utf-8"]
-    assert conn.resp_body === "<?xml version=\"1.0\">\n<DataNoAttr>\n\t<id>1</id>\n\t<name>bob</name>\n</DataNoAttr>"
+    assert conn.resp_body === "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<DataNoAttr>\n\t<id>1</id>\n\t<name>bob</name>\n</DataNoAttr>"
   end
 
   test "encodes a xml response with struct and attrs" do
@@ -102,7 +102,7 @@ defmodule Placid.Response.RenderingTest do
       |> Placid.Response.RenderingTest.Router.call([])
 
     assert get_resp_header(conn, "content-type") === ["application/xml; charset=utf-8"]
-    assert conn.resp_body === "<?xml version=\"1.0\">\n<Data status=\"new\">\n\t<id>1</id>\n\t<name>bob</name>\n</Data>"
+    assert conn.resp_body === "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n<Data status=\"new\">\n\t<id>1</id>\n\t<name>bob</name>\n</Data>"
   end
 
   defmodule Router do
