@@ -10,35 +10,32 @@ defmodule Placid.Response.Rendering do
 
   defmodule Engine do
     @moduledoc false
-    use Behaviour
 
     @type data    :: Keyword | Map | List
     @type type    :: binary
     @type subtype :: binary
 
-    defcallback serialize(data, type, subtype) :: { :ok, binary } | :next
+    @callback serialize(data, type, subtype) :: { :ok, binary } | :next
   end
 
   @moduledoc """
-  `Placid.Response.Rendering` provides the ability for a response to be 
+  `Placid.Response.Rendering` provides the ability for a response to be
   automatically serialized based on its content-type.
 
   ## Engines
 
   Rendering engines translate Elixir terms into a serialized format. Each engine
-  is responsible for a single type of content and is capable of rendering for 
+  is responsible for a single type of content and is capable of rendering for
   multiple mime types.
 
   Rendering engines should implement callbacks for the following behaviour:
 
       defmodule Placid.Response.Rendering.Engine do
-        use Behaviour
-
         @type data    :: Keyword | Map | List
         @type type    :: binary
         @type subtype :: binary
 
-        defcallback serialize(data, type, subtype) :: { :ok, binary } | :next
+        @callback serialize(data, type, subtype) :: { :ok, binary } | :next
       end
 
   Current, built-in implementations include:
@@ -48,7 +45,7 @@ defmodule Placid.Response.Rendering do
   """
 
   alias Placid.Response.Rendering.Engines
-  
+
   @unsent  [ :unset, :set ]
   @engines [ Engines.JSON,
              Engines.XML ]

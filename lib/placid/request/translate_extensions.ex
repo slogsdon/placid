@@ -3,7 +3,7 @@ defmodule Placid.Request.TranslateExtensions do
   def init(opts), do: opts
 
   def call(conn, _opts) do
-    Enum.reduce(extensions, conn, &reduce(&2, &1))
+    Enum.reduce(extensions(), conn, &reduce(&2, &1))
   end
 
   defp extensions do

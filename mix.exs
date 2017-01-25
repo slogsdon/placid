@@ -3,12 +3,12 @@ defmodule Placid.Mixfile do
 
   def project do
     [ app: :placid,
-      version: "0.2.0",
+      version: "0.3.0",
       elixir: ">= 1.0.0",
-      deps: deps,
+      deps: deps(),
       name: "Placid",
-      package: package,
-      description: description,
+      package: package(),
+      description: description(),
       docs: [ extras: [ "README.md" ],
 	      main: "readme" ],
       test_coverage: [ tool: ExCoveralls ] ]
@@ -22,14 +22,14 @@ defmodule Placid.Mixfile do
 
   defp deps do
     [ { :cowboy, "~> 1.0" },
-      { :plug, "~> 1.0" },
-      { :http_router, "~> 0.0" },
+      { :plug, "~> 1.3" },
+      { :http_router, "~> 0.10" },
       { :linguist, "~> 0.1" },
-      { :poison, "~> 3.0" },
+      { :poison, "~> 3.1" },
       { :xml_builder, "~> 0.0" },
-      { :earmark, "~> 1.0", only: :dev },
+      { :earmark, "~> 1.1", only: :dev },
       { :ex_doc, "~> 0.14", only: :dev },
-      { :excoveralls, "~> 0.5", only: :test },
+      { :excoveralls, "~> 0.6", only: :test },
       { :dialyze, "~> 0.2", only: :test } ]
   end
 
